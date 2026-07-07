@@ -2,8 +2,7 @@ name: Update Gas Prices
 
 on:
   schedule:
-    - cron: '0 14 * * 6'   # Saturday 9am CT (14:00 UTC)
-    - cron: '0 14 * * 0'   # Sunday 9am CT (14:00 UTC)
+    - cron: '0 14 * * *'   # Every day 9am CT (14:00 UTC)
   workflow_dispatch:        # Allow manual trigger from GitHub Actions tab
 
 jobs:
