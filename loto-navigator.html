@@ -1976,12 +1976,12 @@ document.querySelectorAll('.ftuel').forEach(btn=>{
 });
 
 // ── LAKEEXPO GAS PRICE SCRAPER ─────────────────────────────
-// Fetches weekly Boat Gas Report from LakeExpo.com RSS feed,
-// parses marina prices from the article HTML, and updates locs[] in-place.
+// Primary: fetches prices.json committed to GitHub by the weekly GitHub Action.
+// Fallback: CORS proxy fetch (often blocked by LakeExpo — kept as backup only).
+const PRICES_JSON_URL='https://raw.githubusercontent.com/rmeantadmin/lotoapp/main/prices.json';
 const CORS_PROXIES=['https://corsproxy.io/?url=','https://api.codetabs.com/v1/proxy?quest='];
 const LAKEEXPO_RSS='https://www.lakeexpo.com/search/?f=rss&t=article&c=boating/boat_gas_report&l=5&s=start_time&sd=desc';
 
-// Try multiple CORS proxies with fallback
 async function corseFetch(url){
   for(const proxy of CORS_PROXIES){
     try{
@@ -1994,52 +1994,56 @@ async function corseFetch(url){
 
 async function fetchLakeExpoPrices(){
   try{
-    // 1. Fetch RSS feed to find latest article URL
-    const rssResp=await corseFetch(LAKEEXPO_RSS);
-    const rssText=await rssResp.text();
-    const parser=new DOMParser();
-    const rssDoc=parser.parseFromString(rssText,'text/xml');
-    const items=rssDoc.querySelectorAll('item');
-    if(!items.length) throw new Error('No articles found');
+    let parsed=[], articleUrl='', dateStr='';
 
-    // Find the most recent gas report article
-    const firstItem=items[0];
-    const articleUrl=firstItem.querySelector('link')?.textContent?.trim();
-    const pubDate=firstItem.querySelector('pubDate')?.textContent?.trim();
-    if(!articleUrl) throw new Error('No article URL');
-
-    // 2. Fetch the article page
-    const artResp=await corseFetch(articleUrl);
-    if(!artResp.ok) throw new Error('Article fetch failed');
-    const artHtml=await artResp.text();
-
-    // 3. Parse prices from article body
-    // Format: "(MM) Marina Name – $X.XX 87 Octane, $X.XX 93 Octane, $X.XX Diesel"
-    // Strip all HTML tags first for cleaner parsing
-    const cleanHtml=artHtml.replace(/<a[^>]*>(.*?)<\/a>/gi,'$1').replace(/<\/?(?:strong|b|em|i|span|div|p|br|u)[^>]*>/gi,' ');
-    const priceRegex=/\((\d+)\s*MM\)\s*([^–—\-$]+?)\s*[–—\-]\s*(.+?)(?=\(\d+\s*MM\)|$)/gi;
-    const fuelRegex=/\$(\d+\.\d{2})\s*(87|89|91|93|diesel)\s*(?:octane)?/gi;
-    const parsed=[];
-    let match;
-    while((match=priceRegex.exec(cleanHtml))!==null){
-      const mm=parseInt(match[1]);
-      const rawName=match[2].replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
-      const priceStr=match[3];
-      const prices={};
-      let fmatch;
-      while((fmatch=fuelRegex.exec(priceStr))!==null){
-        const key=fmatch[2].toLowerCase();
-        prices[key]=fmatch[1];
+    // 1. Try GitHub-hosted prices.json (updated by GitHub Actions — no CORS issues)
+    try{
+      const jsonResp=await fetch(PRICES_JSON_URL);
+      if(jsonResp.ok){
+        const data=await jsonResp.json();
+        const ageMs=Date.now()-new Date(data.updated).getTime();
+        if(ageMs<8*864e5&&data.locations?.length){
+          parsed=data.locations;
+          articleUrl=data.articleUrl||'';
+          dateStr=new Date(data.updated).toLocaleDateString('en-US',{month:'short',year:'numeric'});
+        }
       }
-      fuelRegex.lastIndex=0;
-      if(Object.keys(prices).length>0){
-        parsed.push({mm,name:rawName,prices});
+    }catch(e){/* fall through to CORS proxy */}
+
+    // 2. Fall back to live CORS proxy fetch if prices.json unavailable or stale
+    if(!parsed.length){
+      const rssResp=await corseFetch(LAKEEXPO_RSS);
+      const rssText=await rssResp.text();
+      const parser=new DOMParser();
+      const rssDoc=parser.parseFromString(rssText,'text/xml');
+      const items=rssDoc.querySelectorAll('item');
+      if(!items.length) throw new Error('No articles found');
+      const firstItem=items[0];
+      articleUrl=firstItem.querySelector('link')?.textContent?.trim()||'';
+      const pubDate=firstItem.querySelector('pubDate')?.textContent?.trim();
+      if(!articleUrl) throw new Error('No article URL');
+      const artResp=await corseFetch(articleUrl);
+      if(!artResp.ok) throw new Error('Article fetch failed');
+      const artHtml=await artResp.text();
+      const cleanHtml=artHtml.replace(/<a[^>]*>(.*?)<\/a>/gi,'$1').replace(/<\/?(?:strong|b|em|i|span|div|p|br|u)[^>]*>/gi,' ');
+      const priceRegex=/\((\d+)\s*MM\)\s*([^–—\-$]+?)\s*[–—\-]\s*(.+?)(?=\(\d+\s*MM\)|$)/gi;
+      const fuelRegex=/\$(\d+\.\d{2})\s*(87|89|91|93|diesel)\s*(?:octane)?/gi;
+      let match;
+      while((match=priceRegex.exec(cleanHtml))!==null){
+        const mm=parseInt(match[1]);
+        const rawName=match[2].replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+        const priceStr=match[3];
+        const prices={};
+        let fmatch;
+        while((fmatch=fuelRegex.exec(priceStr))!==null){prices[fmatch[2].toLowerCase()]=fmatch[1];}
+        fuelRegex.lastIndex=0;
+        if(Object.keys(prices).length>0) parsed.push({mm,name:rawName,prices});
       }
+      dateStr=pubDate?new Date(pubDate).toLocaleDateString('en-US',{month:'short',year:'numeric'}):'';
+      if(!parsed.length) throw new Error('No prices parsed from article');
     }
 
-    if(parsed.length===0) throw new Error('No prices parsed from article');
-
-    // 4. Match parsed prices to our locs[] by name similarity
+    // 3. Match parsed prices to our locs[] by name similarity
     // Alias map: LakeExpo name fragment → our location name fragment
     const nameAliases={
       'frankylou':'franky',        // Franky & Louie's
