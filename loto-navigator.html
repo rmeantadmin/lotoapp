@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LOTO Navigator</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+#app{display:flex;flex-direction:column;height:100vh;background:#eaf4fb}
+
+
+/* ── PHONE / WEBSITE ─────────────────────────────── */
+.addr-row{font-size:13px;color:#555;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.addr-link,.phone-link{color:#1a7eb7;text-decoration:none;font-weight:600}
+.website-btn{display:inline-flex;align-items:center;gap:5px;background:#e3f4fb;color:#0d3d5c;text-decoration:none;font-size:12px;font-weight:700;padding:7px 14px;border-radius:20px;border:1.5px solid #b0d9ef}
+.website-btn:active{background:#1a7eb7;color:#fff}
+
+/* ── MM CHANNEL LABELS ───────────────────────────── */
+.mm-channel-label{background:none;color:#1a3a5c;font-size:11px;font-weight:800;white-space:nowrap;pointer-events:none;text-shadow:0 0 3px rgba(255,255,255,1),0 0 5px rgba(255,255,255,.9),0 0 8px rgba(255,255,255,.7);letter-spacing:0.3px}
+.mm-arm-label{background:none;color:#5a1a7c;font-size:10px;font-weight:800;white-space:nowrap;pointer-events:none;text-shadow:0 0 3px rgba(255,255,255,1),0 0 5px rgba(255,255,255,.9),0 0 8px rgba(255,255,255,.7);letter-spacing:0.3px}
+.channel-line-main{stroke:#1a6b96;stroke-opacity:.55;stroke-width:3;fill:none}
+.channel-line-arm{stroke:#7b1fa2;stroke-opacity:.45;stroke-width:2;fill:none}
+
+/* ── MY PLACES ───────────────────────────────────── */
+#add-fab{bottom:162px;right:14px;background:#7b1fa2;color:#fff;font-size:22px}
+#add-fab.add-mode{background:#f57c00;animation:pulse-fab 1.2s infinite}
+@keyframes pulse-fab{0%,100%{box-shadow:0 3px 12px rgba(245,124,0,.4)}50%{box-shadow:0 3px 22px rgba(245,124,0,.7)}}
+#add-mode-toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(123,31,162,.9);color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;z-index:700;display:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3);pointer-events:none}
+#my-place-form{position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -5px 24px rgba(0,0,0,.2);z-index:720;padding:6px 16px 30px;transform:translateY(100%);transition:transform .35s cubic-bezier(.22,.61,.36,1)}
+#my-place-form.open{transform:translateY(0)}
+#my-place-form input[type=text]{width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:10px;outline:none;-webkit-appearance:none}
+#my-place-form input:focus{border-color:#7b1fa2}
+.icon-picker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.icon-opt{width:42px;height:42px;border-radius:10px;border:2px solid #e0e0e0;background:#f8f9fb;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icon-opt.selected{border-color:#7b1fa2;background:#f3e5f5}
+.mpf-btns{display:flex;gap:10px;margin-top:4px}
+.mpf-save{flex:1;background:#7b1fa2;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer}
+.mpf-cancel{background:#f0f0f0;color:#333;border:none;border-radius:12px;padding:12px 18px;font-size:14px;font-weight:600;cursor:pointer}
+.my-place-pin-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.my-place-pin{background:#7b1fa2;color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.3);border:2px solid #fff}
+.my-place-lbl{background:rgba(123,31,162,.85);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis}
+
+
+/* ── RESTAURANT SUB-FILTER TABS ─────────────────────── */
+#sub-filter-tabs{display:none;gap:5px;padding:0 0 8px;overflow-x:auto;scrollbar-width:none}
+#sub-filter-tabs::-webkit-scrollbar{display:none}
+.stab{flex-shrink:0;padding:4px 12px;border-radius:14px;border:1.5px solid rgba(255,255,255,.28);background:transparent;color:rgba(255,255,255,.72);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .18s}
+.stab.active{background:rgba(255,255,255,.22);color:#fff;border-color:rgba(255,255,255,.55)}
+
+/* ── FUEL GRADE SUB-FILTER TABS ─────────────────────── */
+#fuel-filter-tabs{display:none;gap:5px;padding:0 0 8px;overflow-x:auto;scrollbar-width:none}
+#fuel-filter-tabs::-webkit-scrollbar{display:none}
+.ftuel{flex-shrink:0;padding:4px 12px;border-radius:14px;border:1.5px solid rgba(255,255,255,.28);background:transparent;color:rgba(255,255,255,.72);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .18s}
+.ftuel.active{background:rgba(255,255,255,.22);color:#fff;border-color:rgba(255,255,255,.55)}
+
+/* ── X-TOW BADGE ─────────────────────────────────────── */
+.xtow-badge{display:inline-flex;align-items:center;gap:4px;background:#fff3e0;color:#e65100;font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;border:1px solid #ffcc80;margin-top:6px}
+
+/* ── HEADER ─────────────────────────────── */
+#header{background:linear-gradient(135deg,#0d3d5c 0%,#1a6b96 100%);padding:10px 14px 0;z-index:1000;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.header-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.header-top h1{color:#fff;font-size:19px;font-weight:800;letter-spacing:.3px;flex:1}
+.header-top h1 span{font-size:22px;margin-right:4px}
+#search-wrap{position:relative;margin-bottom:8px}
+#search-input{width:100%;padding:9px 36px 9px 14px;border-radius:22px;border:none;font-size:13px;background:rgba(255,255,255,.95);outline:none;color:#222}
+#search-input::placeholder{color:#999}
+#search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;cursor:pointer;color:#999;display:none;line-height:1}
+#filter-tabs{display:flex;gap:6px;padding-bottom:10px;overflow-x:auto;scrollbar-width:none}
+#filter-tabs::-webkit-scrollbar{display:none}
+.ftab{flex-shrink:0;padding:5px 13px;border-radius:18px;border:1.5px solid rgba(255,255,255,.35);background:transparent;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.ftab.active{background:#fff;color:#0d3d5c;border-color:#fff}
+
+/* ── MAP ─────────────────────────────────── */
+#map-wrap{flex:1;position:relative;overflow:hidden}
+#map{width:100%;height:100%}
+
+/* floating buttons */
+.fab{position:absolute;z-index:500;border:none;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.28);transition:all .2s;background:#fff;font-size:20px;width:50px;height:50px}
+.fab:active{transform:scale(.95)}
+#btn-gps{bottom:100px;right:14px}
+#btn-gps.tracking{background:#1a7eb7;color:#fff}
+#btn-list{bottom:30px;right:14px;background:#0d3d5c;color:#fff;font-size:13px;font-weight:700;width:auto;padding:0 16px;border-radius:24px;height:44px;white-space:nowrap;gap:6px}
+
+/* GPS toast */
+#gps-toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(13,61,92,.92);color:#fff;padding:7px 16px;border-radius:20px;font-size:12px;z-index:600;display:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+/* ── BOTTOM SHEET ─────────────────────────── */
+#sheet{position:absolute;bottom:0;left:0;right:0;height:78vh;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -5px 24px rgba(0,0,0,.2);z-index:700;transform:translateY(100%);transition:transform .35s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column}
+#sheet.open{transform:translateY(0)}
+.sheet-handle{width:38px;height:4px;background:#e0e0e0;border-radius:2px;margin:10px auto 0;flex-shrink:0}
+.sheet-head{padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0;flex-shrink:0}
+.sheet-head h2{font-size:15px;font-weight:700;color:#0d3d5c}
+.sheet-head span{font-size:12px;color:#999}
+#loc-list{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+.cove-hdr{padding:7px 14px 4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#999;background:#f8f9fb;border-bottom:1px solid #efefef;position:sticky;top:0;z-index:2}
+.loc-row{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .12s}
+.loc-row:active,.loc-row:hover{background:#f0f7fb}
+.loc-avatar{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.av-r{background:#fff3e0}.av-f{background:#e3f2fd}.av-b{background:#e8f5e9}
+.loc-body{flex:1;min-width:0}
+.loc-name{font-size:13.5px;font-weight:700;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loc-sub{font-size:11px;color:#888;margin-top:2px}
+.mm-badge{font-size:11px;font-weight:700;color:#1a7eb7;background:#e3f4fb;padding:3px 8px;border-radius:9px;white-space:nowrap;flex-shrink:0}
+#no-results{padding:48px 20px;text-align:center;color:#aaa;font-size:14px;display:none}
+
+/* ── DETAIL MODAL ─────────────────────────── */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900;display:none;align-items:flex-end}
+#modal-overlay.open{display:flex}
+#modal{background:#fff;width:100%;max-height:90vh;border-radius:20px 20px 0 0;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-close{position:sticky;top:0;background:#fff;padding:12px 14px 0;display:flex;justify-content:flex-end;z-index:1}
+.modal-close button{background:#f0f0f0;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:0 16px 28px}
+.modal-icon-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.modal-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.modal-title{font-size:20px;font-weight:800;color:#0d3d5c;line-height:1.2}
+.modal-type{font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.modal-mm{display:inline-block;background:#e3f4fb;color:#1a7eb7;font-size:12px;font-weight:700;padding:4px 10px;border-radius:10px;margin-bottom:14px}
+.section-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#0d3d5c;margin:14px 0 8px;border-left:3px solid #1a7eb7;padding-left:8px}
+.description{font-size:13px;color:#555;line-height:1.55}
+
+/* allergy chips */
+.allergy-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.allergy-chip{padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px}
+.chip-yes{background:#e8f5e9;color:#2e7d32}
+.chip-no{background:#fce4ec;color:#c62828}
+.chip-ask{background:#fff8e1;color:#f57f17}
+
+/* highlight chips */
+.highlights-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.highlight-chip{background:#f0f7fb;border:1px solid #cde4f0;color:#0d3d5c;font-size:12px;font-weight:600;padding:5px 11px;border-radius:16px}
+.menu-link-btn{display:inline-flex;align-items:center;gap:5px;margin-top:2px;background:#0d3d5c;color:#fff;text-decoration:none;font-size:12px;font-weight:700;padding:8px 16px;border-radius:20px}
+.gf-menu-btn{display:inline-flex;align-items:center;gap:5px;margin-top:6px;background:#2e7d32;color:#fff;text-decoration:none;font-size:12px;font-weight:700;padding:8px 16px;border-radius:20px}
+.menu-btns-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.closed-banner{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+/* GF options */
+.gf-section{margin-top:4px}
+.gf-item{font-size:13px;color:#2e7d32;padding:4px 0;display:flex;align-items:center;gap:6px}
+.gf-item::before{content:"✓";font-weight:800;flex-shrink:0}
+.gf-none{font-size:12px;color:#888;font-style:italic}
+
+/* allergy chips (kept for compatibility) */
+.allergy-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.allergy-chip{padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px}
+.chip-yes{background:#e8f5e9;color:#2e7d32}.chip-no{background:#fce4ec;color:#c62828}.chip-ask{background:#fff8e1;color:#f57f17}
+
+/* fuel table */
+.fuel-table{width:100%;border-collapse:collapse;font-size:13px;border-radius:10px;overflow:hidden;margin-top:4px}
+.fuel-table th{background:#e3f2fd;color:#0d3d5c;font-weight:700;padding:7px 10px;text-align:left;font-size:11px;text-transform:uppercase}
+.fuel-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0}
+.fuel-table tr:last-child td{border:none}
+.fuel-avail{color:#2e7d32;font-weight:700}
+.fuel-na{color:#ccc}
+.fuel-price{font-weight:700;color:#0d3d5c}
+.price-note{font-size:11px;color:#f57f17;background:#fff8e1;padding:6px 10px;border-radius:8px;margin-top:8px;display:flex;align-items:center;gap:5px}
+
+/* hours badge */
+.hours-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:13px;color:#555}
+.hours-dot{width:8px;height:8px;border-radius:50%;background:#4caf50;flex-shrink:0}
+.hours-dot.seasonal{background:#ff9800}
+
+/* legend */
+#legend{position:absolute;bottom:88px;left:14px;z-index:400;background:rgba(255,255,255,.93);border-radius:12px;padding:8px 12px;box-shadow:0 2px 8px rgba(0,0,0,.18);font-size:11.5px;line-height:1.9}
+#legend strong{font-size:11px;font-weight:800;color:#333;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:2px}
+.leg-r{color:#e8500a;font-size:14px}.leg-f{color:#1a7eb7;font-size:14px}.leg-b{color:#219a52;font-size:14px}
+
+/* cove map labels */
+.cove-map-label{background:rgba(13,61,92,.82);color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);letter-spacing:.3px;pointer-events:none;backdrop-filter:blur(2px);border:1px solid rgba(255,255,255,.15)}
+/* pin name tooltips */
+.pin-tooltip{background:rgba(255,255,255,.93)!important;border:1px solid #d0d0d0!important;border-radius:7px!important;padding:2px 7px!important;font-size:10.5px!important;font-weight:600!important;color:#1a1a1a!important;box-shadow:0 1px 5px rgba(0,0,0,.18)!important;white-space:nowrap!important}
+.pin-tooltip::before{display:none!important}
+
+/* popup tweaks */
+.leaflet-popup-content-wrapper{border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.leaflet-popup-content{margin:12px 14px;min-width:180px}
+.pp-name{font-size:14px;font-weight:700;color:#0d3d5c;margin-bottom:3px}
+.pp-type{font-size:10px;text-transform:uppercase;font-weight:700;letter-spacing:.5px;color:#999;margin-bottom:5px}
+.pp-desc{font-size:12px;color:#555;line-height:1.45}
+.pp-mm{margin-top:7px;font-size:11px;font-weight:700;color:#1a7eb7;background:#e3f4fb;display:inline-block;padding:2px 8px;border-radius:8px}
+.pp-btn{display:block;margin-top:9px;background:#0d3d5c;color:#fff;border:none;border-radius:20px;padding:7px 0;width:100%;font-size:12px;font-weight:700;cursor:pointer;text-align:center}
+
+/* ── BOAT NAVIGATION ─────────────────────── */
+#nav-panel{position:absolute;top:12px;left:14px;right:14px;z-index:600;background:rgba(10,40,70,.97);color:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 6px 28px rgba(0,0,0,.55);display:none;backdrop-filter:blur(4px)}
+.nav-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;background:linear-gradient(135deg,#1a7eb7,#0d5d8f);color:#fff;border:none;font-size:14px;font-weight:700;padding:13px 20px;border-radius:24px;cursor:pointer;width:100%;letter-spacing:.2px}
+.nav-btn:active{opacity:.85;transform:scale(.98)}
+
+/* address row */
+.addr-row{font-size:12px;color:#888;margin-top:5px;margin-bottom:2px;display:flex;align-items:flex-start;gap:5px;line-height:1.45}
+.addr-link{color:#1a7eb7;text-decoration:none;font-size:12px}
+.addr-link:active{text-decoration:underline}
+
+/* seasonal closure */
+.season-closed{background:linear-gradient(135deg,#b33a00,#d94f1a);color:#fff;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;line-height:1.35}
+
+/* gas price panel */
+#gas-price-panel{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1100;background:rgba(10,30,55,.97);color:#fff;display:none;flex-direction:column;overflow:hidden}
+#gas-price-panel.open{display:flex}
+#gpp-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;background:rgba(0,0,0,.25);flex-shrink:0}
+#gpp-header h2{font-size:16px;font-weight:800;margin:0;letter-spacing:.2px}
+#gpp-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
+#gpp-grade-tabs{display:flex;gap:6px;padding:10px 16px 6px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+#gpp-grade-tabs::-webkit-scrollbar{display:none}
+.gpp-tab{flex-shrink:0;padding:5px 13px;border-radius:16px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.75);font-size:11px;font-weight:700;cursor:pointer;transition:all .18s}
+.gpp-tab.active{background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.6)}
+#gpp-list{overflow-y:auto;flex:1;padding:8px 12px 20px}
+.gpp-row{display:flex;align-items:center;background:rgba(255,255,255,.07);border-radius:12px;margin-bottom:8px;padding:10px 14px;gap:10px;cursor:pointer;transition:background .15s}
+.gpp-row:active{background:rgba(255,255,255,.14)}
+.gpp-rank{font-size:20px;font-weight:900;width:28px;text-align:center;flex-shrink:0}
+.gpp-rank.gold{color:#FFD700}.gpp-rank.silver{color:#C0C0C0}.gpp-rank.bronze{color:#CD7F32}
+.gpp-info{flex:1;min-width:0}
+.gpp-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gpp-sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
+.gpp-price{text-align:right;flex-shrink:0}
+.gpp-price-val{font-size:20px;font-weight:900;color:#4fc3f7}
+.gpp-price-gal{font-size:10px;color:rgba(255,255,255,.5);margin-top:1px}
+.gpp-no-price{font-size:11px;color:rgba(255,255,255,.35);font-style:italic}
+.gpp-section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.35);padding:8px 4px 4px;margin-top:4px}
+.gpp-note{font-size:11px;color:rgba(255,255,255,.45);background:rgba(255,255,255,.06);border-radius:8px;padding:8px 12px;margin:4px 0 10px;line-height:1.45}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="header-top">
+      <h1><span>⚓</span>LOTO Navigator</h1>
+      <div style="color:rgba(255,255,255,.6);font-size:11px;text-align:right">Lake of the Ozarks<br>Restaurants &amp; Fuel</div>
+    </div>
+    <div id="search-wrap">
+      <input id="search-input" type="text" placeholder="🔍  Search name, cove, or mile marker…"/>
+      <button id="search-clear">✕</button>
+    </div>
+    <div id="filter-tabs">
+      <button class="ftab active" data-f="all">🗺 All</button>
+      <button class="ftab" data-f="restaurant">🍽 Restaurants</button>
+      <button class="ftab" data-f="fuel">⛽ Fuel Docks</button>
+      <button class="ftab" data-f="both">🍽⛽ Restaurant+Fuel</button>
+      <button class="ftab" data-f="myplaces">⭐ My Places</button>
+    </div>
+    <div id="sub-filter-tabs">
+      <button class="stab active" data-sf="">⏰ All Hours</button>
+      <button class="stab" data-sf="breakfast">🍳 Breakfast</button>
+      <button class="stab" data-sf="late">🌙 Open Late</button>
+      <button class="stab" data-sf="music">🎵 Live Music</button>
+    </div>
+    <div id="fuel-filter-tabs">
+      <button class="ftuel active" data-fg="">⛽ All Grades</button>
+      <button class="ftuel" data-fg="87">87 Regular</button>
+      <button class="ftuel" data-fg="91">91 Premium</button>
+      <button class="ftuel" data-fg="93">93 Premium</button>
+      <button class="ftuel" data-fg="diesel">🚢 Diesel</button>
+      <button class="ftuel" data-fg="prices" id="btn-gas-prices">💰 Gas Prices</button>
+    </div>
+  </div>
+
+  <!-- GAS PRICE PANEL -->
+  <div id="gas-price-panel">
+    <div id="gpp-header">
+      <div><h2 style="margin:0">⛽ Gas Prices — Cheapest First</h2><div id="gpp-source" style="font-size:10px;color:rgba(255,255,255,.5);margin-top:2px"></div></div>
+      <button id="gpp-close">✕</button>
+    </div>
+    <div id="gpp-grade-tabs">
+      <button class="gpp-tab active" data-grade="87">87 Regular</button>
+      <button class="gpp-tab" data-grade="91">91 Premium</button>
+      <button class="gpp-tab" data-grade="93">93 Premium</button>
+      <button class="gpp-tab" data-grade="diesel">Diesel</button>
+    </div>
+    <div id="gpp-list"></div>
+  </div>
+
+  <!-- MAP -->
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="add-mode-toast">📍 Tap the map to drop a pin</div>
+    <div id="my-place-form">
+      <div class="sheet-handle"></div>
+      <h3 style="font-size:16px;font-weight:800;color:#0d3d5c;margin:10px 0 14px">📍 Save a Place</h3>
+      <div class="icon-picker" id="mpf-icons">
+        <div class="icon-opt selected" data-icon="🏠" onclick="selectMPIcon(this)">🏠</div>
+        <div class="icon-opt" data-icon="⚓" onclick="selectMPIcon(this)">⚓</div>
+        <div class="icon-opt" data-icon="🎣" onclick="selectMPIcon(this)">🎣</div>
+        <div class="icon-opt" data-icon="🏖️" onclick="selectMPIcon(this)">🏖️</div>
+        <div class="icon-opt" data-icon="⭐" onclick="selectMPIcon(this)">⭐</div>
+        <div class="icon-opt" data-icon="🍺" onclick="selectMPIcon(this)">🍺</div>
+        <div class="icon-opt" data-icon="🐟" onclick="selectMPIcon(this)">🐟</div>
+        <div class="icon-opt" data-icon="🏡" onclick="selectMPIcon(this)">🏡</div>
+      </div>
+      <input type="text" id="mpf-name" placeholder="Name (e.g. My Lake House)"/>
+      <input type="text" id="mpf-note" placeholder="Notes (optional)"/>
+      <div class="mpf-btns">
+        <button class="mpf-cancel" onclick="cancelAddPlace()">Cancel</button>
+        <button class="mpf-save" onclick="saveMyPlace()">Save Place</button>
+      </div>
+    </div>
+    <div id="gps-toast">📍 Finding your location…</div>
+    <button id="btn-gps" class="fab" title="Find my location">📍</button>
+    <button id="btn-list" class="fab">☰ Directory</button>
+    <div id="legend"><strong>Legend</strong>
+      <div><span class="leg-r">●</span> Restaurant / Bar</div>
+      <div><span class="leg-f">●</span> Fuel Dock</div>
+      <div><span class="leg-b">●</span> Restaurant + Fuel</div>
+    </div>
+
+    <!-- BOAT NAVIGATION PANEL -->
+    <div id="nav-panel">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">🚤 Navigating to</div>
+          <div style="font-size:15px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="nav-dest-name">—</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:2px" id="nav-dest-mm">—</div>
+        </div>
+        <button onclick="stopNavigation()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer;flex-shrink:0;margin-left:10px;line-height:30px">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+        <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:9px 4px;text-align:center">
+          <div style="font-size:20px;font-weight:800;letter-spacing:-.5px;min-height:26px" id="nav-dist">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Distance</div>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:9px 4px;text-align:center">
+          <div style="font-size:20px;font-weight:800;min-height:26px" id="nav-dir">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Bearing</div>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:9px 4px;text-align:center">
+          <div style="font-size:20px;font-weight:800;min-height:26px" id="nav-your-mm">—</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Your MM</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.1);border-radius:9px;padding:8px 11px;font-size:12px;display:flex;align-items:center;gap:7px;line-height:1.4" id="nav-status">
+        <span style="font-size:15px;flex-shrink:0">📍</span><span>Acquiring GPS signal…</span>
+      </div>
+    </div>
+
+    <!-- BOTTOM SHEET -->
+    <div id="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <h2>📍 All Locations</h2>
+        <span id="count-label"></span>
+      </div>
+      <div id="loc-list"></div>
+      <div id="no-results">No locations match your search.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <div class="modal-close"><button onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+const locs = [
+
+  // ── BAGNELL DAM AREA (MM 1–5.5) ───────────────────
+  {
+    id:1, name:"Ozark Yacht Club", type:"both", mm:1, cove:"Bagnell Dam Area",
+    lat:38.19992, lng:-92.64541, icon:"⚓",
+    phone:"(573) 552-8401",
+    website:"https://bigthundermarine.com/ozark-yacht-club/",
+    address:"500 Bagnell Dam Blvd, Lake Ozark, MO 65049",
+    desc:"Waterfront bar and grill with an on-site gas dock. Open year-round, one of the closest stops to Bagnell Dam.",
+    hours:"Open year-round · 11am–10pm",seasonal:false,
+    highlights:["Catfish Basket","Yacht Club Burger","12oz Ribeye"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    cstore:null,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:null,91:null},priceDate:null,hours:"Seasonal — call ahead",note:"Big Thunder Marine fuel dock. Seasonal — call ahead to confirm availability."}
+  },
+
+  // ── BAGNELL DAM / MM 3–5.5 ────────────────────────
+  {
+    id:2, name:"BoatHouse Lakeside Bar & Grill", type:"restaurant", mm:3, cove:"Bagnell Dam Area",
+    lat:38.22662, lng:-92.67384, icon:"🏄",
+    phone:"(573) 552-9464",
+    website:"https://boathouse-lakeside-bar-and-grill.square.site/",
+    address:"107 Village Marina Rd, Eldon, MO 65026",
+    desc:"Swim-up bar, outdoor live music stage, burgers, sliders, and brick oven pizzas. Great spot for groups.",
+    hours:"Seasonal Apr–Oct · 11am–11pm",seasonal:true,
+    highlights:["Brick Oven Pizzas","Smash Burger","Live Music & Swim-up Bar"],
+    menuUrl:"https://boathouselakesidebar.com/restaurant-menu/",
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+  {
+    id:3, name:"Docknockers Bar & Grill", type:"restaurant", mm:4, cove:"Bagnell Dam Area",
+    lat:38.2133, lng:-92.70062, icon:"🦀",
+    phone:"(573) 693-1633",
+    website:"https://www.facebook.com/docknockersoriginal/",
+    address:"245 Wheel House Ct., Lake Ozark, MO 65049",
+    desc:"A LOTO classic — famous for all-you-can-eat crab legs on weekends. Affordable, casual, and dog-friendly.",
+    hours:"Seasonal Apr–Oct · 11am–midnight",seasonal:true,
+    highlights:["AYCE Crab Legs (Fri–Sun, $38)","Fish Tacos","Bucket of Domestics"],
+    tags:["late"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+  {
+    id:4, name:"Village Marina Gas Dock", type:"fuel", mm:3, cove:"Bagnell Dam Area",
+    lat:38.22562, lng:-92.67284, icon:"⛽",
+    phone:"(573) 365-1800",
+    website:"https://www.villagemarina.com/",
+    address:null,
+    desc:"87 Non-Ethanol fuel with tap-to-pay pumps available 24/7. Staffed dock May 15–Labor Day. Beer, snacks, ship store, and pump-out services on site. Full-service restaurant attached.",
+    hours:"May 15–Labor Day · 8am–6pm staffed · 24hr pay-at-pump",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:true,
+    fuel:{types:["87 Non-Ethanol"],prices:{87:null},priceDate:null,hours:"24hr pay-at-pump · Staffed May 15–Labor Day 8am–6pm",note:"87 Non-Ethanol only — no 91. Tap-to-pay pumps available 24/7. Pump-out services available."}
+  },
+  {
+    id:22, name:"Mermaid Cove Marina", type:"fuel", mm:5.5, cove:"Mermaid Cove (MM 5.5)",
+    lat:38.26448, lng:-92.77875, icon:"⛽",
+    phone:"(573) 372-6112",
+    website:"https://mermaidcovemarinarvresort.com/",
+    address:null,
+    desc:"Fast, friendly fuel service in a protected no-wake cove near the dam end of the lake. Easy approach for boats of all sizes.",
+    hours:"Seasonal May–Oct (weather permitting) · High Season (Mem Day–Labor Day): Mon–Wed 9am–5pm · Thu 9am–6pm · Fri 9am–7pm · Sat 8am–7pm · Sun 9am–5pm · Low Season: Fri 12pm–6pm · Sat 10am–6pm · Sun 10am–2pm · Extended hours holidays — call ahead",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:true, xtow:true,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:"3.63",91:"3.85"},priceDate:"Jun 2025",hours:"High Season (Mem Day–Labor Day): Mon–Wed 9am–5pm · Thu 9am–6pm · Fri 9am–7pm · Sat 8am–7pm · Sun 9am–5pm · Low Season: Fri 12pm–6pm · Sat 10am–6pm · Sun 10am–2pm",note:"No-wake cove — easy approach. Attendant on duty. X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── TOAD COVE (MM 7) ──────────────────────────────
+  {
+    id:5, name:"Shady Gators", type:"restaurant", mm:7, cove:"Toad Cove (MM 7)",
+    lat:38.20741, lng:-92.74812, icon:"🐊",
+    phone:"(573) 365-6464",
+    website:"https://www.shadygators.com/",
+    address:"132 Sweet William Rd, Lake Ozark, MO 65049",
+    desc:"The most high-energy party spot on the lake. Live music every weekend, multiple bars, volleyball, boat charters, and vacation rentals on site.",
+    hours:"Seasonal Apr–Sep · 10am–midnight",seasonal:true,
+    highlights:["Shady Wings (10 pc)","Pulled Pork Sandwich","Live Music Every Weekend"],
+    tags:["late"],
+    menuUrl:"https://www.shadygators.com/menus",
+    gfOptions:["Gluten-free pizza available (10\" cauliflower herb crust — ask server)"],
+    fuel:null
+  },
+  {
+    id:6, name:"Lazy Gators", type:"restaurant", mm:7, cove:"Toad Cove (MM 7)",
+    lat:38.208, lng:-92.7495, icon:"🍺",
+    phone:"(573) 365-6464",
+    website:"https://www.lazygators.com/",
+    address:null,
+    desc:"Lakefront amphitheater-style bar steps away from Shady Gators and H. Toad's — Toad Cove's walkable bar strip.",
+    hours:"Seasonal May–Sep · 11am–11pm",seasonal:true,
+    highlights:["Draft Beer Rotating Taps","Frozen Cocktails","Lakefront Amphitheater"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+  {
+    id:7, name:"H. Toad's Entertainment Complex", type:"restaurant", mm:7, cove:"Toad Cove (MM 7)",
+    lat:38.2058031, lng:-92.748096, icon:"🎵",
+    phone:"(573) 365-5620",
+    website:"https://htoads.com/",
+    address:"2325 Bittersweet Rd, Lake Ozark, MO 65049",
+    desc:"Large events venue with covered outdoor stages, multiple bars, and food service. Walk between Shady Gators and Lazy Gators.",
+    hours:"Seasonal May–Sep · Noon–midnight",seasonal:true,
+    highlights:["Flatbread Pizza","Fishbowl Cocktail (serves 2)","Covered Live Music Stage"],
+    tags:["late","music"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+  {
+    id:8, name:"Coconuts Caribbean Bar & Grill", type:"restaurant", mm:7, cove:"Gravois Arm (MM 7)",
+    lat:38.2909, lng:-92.7988, icon:"🥥",
+    phone:"(573) 372-6500",
+    website:"https://www.coconutsatthelake.com/",
+    address:null,
+    desc:"Thatched roofs, sand-covered floors, and Caribbean-inspired food. Fruity cocktails and island vibes on the lake.",
+    hours:"Seasonal Apr–Oct · 11am–10pm",seasonal:true,
+    highlights:["Coconut Shrimp","Jerk Chicken Plate","Painkiller Cocktail"],
+    menuUrl:"https://www.coconutsatthelake.com/menu",
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+  {
+    id:9, name:"Toad Cove Marina", type:"fuel", mm:7, cove:"Toad Cove (MM 7)",
+    lat:38.2072, lng:-92.751, icon:"⛽",
+    phone:"(573) 964-5779",
+    website:"https://camdenonthelake.com/marina/toad-cove-yacht-club",
+    address:null,
+    desc:"Self-serve pay-at-pump marina fuel dock right in Toad Cove. Perfect refill while bar-hopping the cove.",
+    hours:"Year-round · Dawn to dusk",seasonal:false,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:null,
+    fuel:{types:["87 Regular","91 Premium","Diesel"],prices:{87:"3.96",91:"4.59",diesel:"3.89"},priceDate:"Labor Day 2025",hours:"Pay-at-pump, dawn to dusk",note:"Prices shown at pump. Credit/debit accepted."}
+  },
+  {
+    id:10, name:"Hillbilly Yacht Club", type:"restaurant", mm:7, cove:"Gravois Arm",
+    lat:38.29163, lng:-92.80294, icon:"🍔",
+    phone:"(573) 372-0188",
+    website:"https://www.facebook.com/hillybillyyachtclub/",
+    address:null,
+    desc:"Casual waterfront bar and grill tucked into the Gravois Arm. Relaxed vibe, hearty portions, great lake views.",
+    hours:"Seasonal Apr–Oct · 11am–10pm",seasonal:true,
+    highlights:["Hillbilly Burger","Catfish Basket","BBQ Bacon Burger"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+
+  // ── GRAVOIS ARM (MM 8) ────────────────────────────
+  {
+    id:11, name:"Maggie's on the Lake", type:"restaurant", mm:8, cove:"Gravois Arm",
+    lat:38.2922, lng:-92.804, icon:"🐸",
+    phone:"(573) 207-3693",
+    website:"https://www.facebook.com/people/Maggies-on-the-lake/100063252129346/?_rdr",
+    address:null,
+    desc:"Formerly Frogs Bar & Grill — laid-back bar and grill on the Gravois Arm with great views and a friendly local crowd.",
+    hours:"Seasonal May–Sep · Noon–10pm",seasonal:true,
+    highlights:["Frog Legs","Ribs Half Rack","Walleye Sandwich"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+  {
+    id:12, name:"Alhonna Resort & Marina", type:"both", mm:8, cove:"Main Channel (MM 8)",
+    lat:38.19937, lng:-92.7516, icon:"🏝",
+    phone:"(573) 365-2634",
+    website:"https://thealhonnaresort.com/",
+    address:"677 Outer Drive, Lake Ozark, MO 65049",
+    desc:"Full-service resort with the Blue Cat Lounge restaurant, 111 covered slips, fuel dock, and boat rentals.",
+    hours:"Restaurant: Seasonal · 7am–9pm  |  Fuel Dock: 8am–8pm",seasonal:true,
+    highlights:["All-Day Breakfast","Blue Cat Burger","Pan-Fried Catfish Dinner"],
+    tags:["breakfast"],
+    menuUrl:"https://thealhonnaresort.com",
+    gfOptions:["Check with your server for gluten-free options"],
+    cstore:null, xtow:true,
+    fuel:{types:["91 Premium"],prices:{91:null},priceDate:null,hours:"8am–8pm",note:"Attendant-assisted fueling. Slip rental available. X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── SUNRISE BEACH (MM 10) ────────────────────────
+  {
+    id:13, name:"Franky & Louie's", type:"restaurant", mm:10, cove:"Sunrise Beach (MM 10)",
+    lat:38.1594313, lng:-92.7565172, icon:"🌴",
+    phone:"(573) 374-5750",
+    website:"https://www.frankyandlouies.com/",
+    address:null,
+    desc:"Beloved tropical lakefront dining with an island atmosphere. Dock-and-dine access on Sunrise Beach.",
+    hours:"Seasonal May–Sep · Open 7 days a week · 11am–close",seasonal:true,
+    highlights:["Mahi Mahi (grilled or blackened)","Lobster Mac & Cheese","Grouper Sandwich"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+
+  // ── CRABTREE COVE (MM 17.5) ──────────────────────
+  {
+    id:14, name:"Backwater Jack's", type:"restaurant", mm:17.5, cove:"Crabtree Cove (MM 17)",
+    lat:38.15454, lng:-92.62382, icon:"🍣",
+    phone:"(573) 348-6639",
+    website:"https://backwaterjacks.com/",
+    address:"4341 Beach Dr, Osage Beach, MO 65065",
+    desc:"Tucked in quiet Crabtree Cove — sushi, AYCE crab legs on weekends, pool bar, and a chill vibe away from the crowds.",
+    hours:"Seasonal Apr–Oct · Noon–11pm",seasonal:true,
+    highlights:["LOTO Roll (spicy tuna)","AYCE Crab Legs (Sat & Sun, $42)","Pool Bar"],
+    menuUrl:"https://backwaterjacks.com/restaurant-menu/",
+    gfOptions:["Menu uses [GF] / [GFO] labels — look for marked items","Ask server for current gluten-free selections"],
+    fuel:null
+  },
+
+  // ── MM 19 AREA ────────────────────────────────────
+  {
+    id:15, name:"Dog Days Bar & Grill", type:"restaurant", mm:19, cove:"Main Channel (MM 19)",
+    lat:38.1399404, lng:-92.6490004, icon:"🐶",
+    phone:"(573) 348-9797",
+    website:"https://dogdays.ws/",
+    address:"1232 Jeffries Rd, Osage Beach, MO 65065",
+    desc:"Swim-up bar, poolside DJ, floating sun decks, and all-day events. One of the busiest party destinations on the lake.",
+    hours:"Seasonal May–Sep · 10am–midnight",seasonal:true,
+    highlights:["Swim-up Bar","Yard Cup (signature frozen drink)","Pulled Pork Sandwich"],
+    tags:["late"],
+    menuUrl:"https://dogdays.ws/menu/",
+    gfOptions:["Full gluten-free menu available — ask server for GF menu","Dedicated fryer for GF items","GF buns available","Popular GF picks: nachos, ahi tuna bowl, wings, fries"],
+    fuel:null
+  },
+  {
+    id:26, name:"Kelly's Port", type:"fuel", mm:19, cove:"Main Channel (MM 19)",
+    lat:38.1384381, lng:-92.6597564, icon:"⛽",
+    phone:"(573) 348-4700",
+    website:"https://www.kellysport.com/",
+    address:null,
+    desc:"Multi-pump fuel dock with expert attendants. No-wake zone for safe and easy fill-up. Quick service for busy summer days.",
+    hours:"Mon & Wed–Sun 9am–4pm · Closed Tuesday · Closed Easter Sunday Apr 5",seasonal:false,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:true,
+    fuel:{types:["87 Regular","93 Premium","Diesel"],prices:{87:"3.79",93:"4.99",diesel:"3.99"},priceDate:"Mar 2026",hours:"Mon & Wed–Sun 9am–4pm · Closed Tuesday",note:"No-wake zone — safe and easy fill-up. Multiple simultaneous pump stations. Fast turnaround."}
+  },
+
+  // ── MM 21 AREA ────────────────────────────────────
+  {
+    id:16, name:"Redhead Lakeside Grill", type:"restaurant", mm:21, cove:"Main Channel (MM 21)",
+    lat:38.1409182, lng:-92.6971998, icon:"🍕",
+    phone:"(573) 693-1525",
+    website:"https://redheadlakesidegrill.com/",
+    address:"1700 Yacht Club Dr, Osage Beach, MO 65065",
+    desc:"Wood-fired pizza, swim-up bar, and spacious staffed slips. Voted #1 restaurant on Lake of the Ozarks multiple years running.",
+    hours:"Seasonal Apr–Oct · 11am–10pm",seasonal:true,
+    highlights:["Wood-Fired Margherita Pizza","Prosciutto & Arugula Pizza","Pan-Seared Salmon"],
+    menuUrl:"https://redheadlakesidegrill.com",
+    gfMenuUrl:null,
+    gfOptions:["Menu is clearly marked for GF items — look for the GF symbol throughout","GF pizza crust available (dedicated fryer — Celiac-safe, confirm with server)","Pan-Seared Salmon (naturally GF)","GF chicken tenders & fries (dedicated fryer)"],
+    fuel:null
+  },
+  {
+    id:17, name:"Shorty Pants Lounge & Marina", type:"both", mm:21, cove:"Salt Hollow Cove (MM 21)",
+    lat:38.1433501, lng:-92.6906138, icon:"⚓",
+    phone:"(573) 302-1745",
+    website:"https://shortypantslounge.com/",
+    address:"1680 Autumn Ln, Osage Beach, MO 65065",
+    desc:"Cajun-inspired lakeside restaurant and full-service marina in Salt Hollow Cove. Famous for Louisiana-style food, diesel fuel, and being voted #1 gas dock for years running.",
+    hours:"Open year-round · 7 days a week · Marina 7am–9pm, Restaurant 11am–9pm",seasonal:false,
+    highlights:["Cajun Shrimp Po'Boy","Crawfish Étouffée","Blackened Catfish Plate"],
+    menuUrl:"https://shortypantslounge.com",
+    gfMenuUrl:"https://shortypantslounge.com/wp-content/uploads/SHORTY-PANTS-GLUTEN-FREE-MENU-copy-1-scaled-1.pdf",
+    gfOptions:["Full gluten-free menu available — ask server","Smoked wings (GF)","Jambalaya (GF)","All meats reportedly GF — confirm with server"],
+    cstore:true, xtow:true,
+    fuel:{types:["87 Regular","93 Premium","Diesel"],prices:{87:"3.79",93:"4.69",diesel:"3.69"},priceDate:"Jun 2025",hours:"Marina: 7am–9pm",note:"Voted #1 gas dock since 2009. Diesel available — one of few on LOTO. Showers, laundry, free WiFi on site. X-Tow Captain's Club members save 10¢/gal."}
+  },
+  {
+    id:18, name:"Redhead Yacht Club Fuel Dock", type:"fuel", mm:21, cove:"Main Channel (MM 21)",
+    lat:38.1409182, lng:-92.6971998, icon:"⛽",
+    phone:"(573) 873-2300",
+    website:"https://redheadyachtclub.com/",
+    address:"1650 Yacht Club Dr, Osage Beach, MO 65065",
+    desc:"Voted #1 marina on LOTO. Unleaded and diesel, pump-out service, ice, cold beer, and marina store. 30¢/gal off Mon–Thu.",
+    hours:"Mon–Thu 9am–8pm · Fri–Sun 8am–9pm",seasonal:false,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:true,
+    fuel:{types:["87 Regular","91 Premium","Diesel"],prices:{87:"3.79",91:"4.69",diesel:"3.69"},priceDate:"Jun 2025",hours:"Mon–Thu 9–8 · Fri–Sun 8–9",note:"30¢/gal off Mon–Thu (excl. holidays). Pump-out service. Store: bait, ice, beer, tackle."}
+  },
+
+  // ── MM 24–28 AREA ─────────────────────────────────
+  {
+    id:20, name:"Paradise Tropical Restaurant & Bar", type:"both", mm:24, cove:"Sunrise Beach (MM 24)",
+    lat:38.148382, lng:-92.741376, icon:"🌺",
+    phone:"(573) 374-4777",
+    website:"https://www.paradiseatthelake.com/",
+    address:null,
+    desc:"Island-inspired dining with fish tacos, fruity cocktails, and a shaded patio. Fuel dock on site — restaurant customers only (min. $15 food/drink purchase). Claims cheapest gas on the lake. Seasonal March through October.",
+    hours:"Seasonal Mar–Oct · 11am–10pm",seasonal:true,
+    highlights:["Fish Tacos (beer-battered cod)","Ceviche","Passion Fruit Margarita","Fuel Dock — Restaurant Customers Only ($15 min)"],
+    menuUrl:"https://www.paradiseatthelake.com/menus",
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:{types:["87 Ethanol-Free"],prices:{87:"2.69"},priceDate:"Feb 2026",hours:"Seasonal Mar–Oct",pricesUrl:"https://www.paradiseatthelake.com/gas-dock",note:"Restaurant customers only — min. $15 food/drink purchase required. Claims cheapest gas on the lake."}
+  },
+  {
+    id:21, name:"LandShark Bar & Grill", type:"restaurant", mm:26, cove:"Tan-Tar-A / Osage Beach (MM 26)",
+    lat:38.1255199, lng:-92.7190223, icon:"🦈",
+    phone:"(573) 348-8593",
+    website:"https://lakeoftheozarks.landsharkbarandgrill.com/",
+    address:"494 Tan Tar A Dr, Osage Beach, MO 65065",
+    desc:"Part of the Margaritaville Resort complex. Beach-bar atmosphere, cold drinks, and indoor/outdoor seating on the lake.",
+    hours:"Seasonal Apr–Oct · 11am–11pm",seasonal:true,
+    highlights:["Cheeseburger in Paradise","Key West Fish Tacos","LandShark Lager"],
+    menuUrl:"https://lakeoftheozarks.landsharkbarandgrill.com/menu",
+    gfOptions:["Dedicated GF menu available — ask for the laminated GF menu","Dedicated fryer for fries and chips","GF bun available for burgers and sandwiches"],
+    fuel:null
+  },
+  {
+    id:23, name:"The Hatch at Miller's Landing", type:"both", mm:28, cove:"Main Channel (MM 28)",
+    lat:38.0965, lng:-92.70573, icon:"🍳",
+    phone:"(573) 348-5268",
+    website:"https://www.facebook.com/MillersLandingLOZ/",
+    address:null,
+    desc:"Family-friendly restaurant and fuel dock. Breakfast, lunch, and dinner. Dog-friendly patio with staffed fuel dock.",
+    hours:"Seasonal Apr–Oct · 7am–9pm",seasonal:true,
+    highlights:["Lake Fisherman's Breakfast","Pan-Fried Walleye Dinner","12oz Ribeye"],
+    tags:["breakfast"],
+    menuUrl:"https://themillerslanding.com",
+    gfOptions:["Check with your server for gluten-free options"],
+    cstore:null, xtow:true,
+    fuel:{types:["87 Regular","93 Premium","Diesel"],prices:{87:"3.69",93:"4.59",diesel:"3.59"},priceDate:"Aug 2025",hours:"7am–9pm",note:"Staffed fuel dock. Mooring available while dining. X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── MM 31–34 AREA ─────────────────────────────────
+  {
+    id:19, name:"Pier 31 Marina", type:"fuel", mm:31, cove:"Main Channel (MM 31)",
+    lat:38.08078, lng:-92.7529373, icon:"⛽",
+    phone:"(573) 873-5283",
+    website:"https://marinerpier31.com/",
+    address:null,
+    desc:"Ethanol-free 87 and 91 octane — ideal for high-performance engines and older boats. Gift shop on site.",
+    hours:"Seasonal May–Sep",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:null,
+    fuel:{types:["87 Regular (ethanol-free)","91 Premium (ethanol-free)"],prices:{87:null,91:null},priceDate:null,hours:"Seasonal — call ahead in shoulder months",note:"Ethanol-free fuel only. Great for performance boats and classic engines."}
+  },
+  {
+    id:24, name:"Bulldogs Beach House", type:"restaurant", mm:33, cove:"Main Channel (MM 33)",
+    lat:38.1011763, lng:-92.7910877, icon:"🍻",
+    phone:"(573) 873-3311",
+    website:"https://bulldogsbeachhouse.com/",
+    address:null,
+    desc:"Casual waterfront bar and grill with dock access. Great views of the main channel, cold beer, and hearty pub food.",
+    hours:"Seasonal May–Sep · Noon–11pm",seasonal:true,
+    highlights:["Bulldog Wings (12 pc)","BBQ Brisket Plate","Bulldog Burger"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+  {
+    id:25, name:"Captain Ron's", type:"restaurant", mm:34, cove:"Main Channel (MM 34)",
+    lat:38.1285644, lng:-92.7919395, icon:"🏴‍☠️",
+    phone:"(573) 374-5852",
+    website:"https://captainronsatthelake.com/",
+    address:null,
+    desc:"Pirate-themed beach bar with a sandy play area for kids, live music, seafood baskets, and tropical drinks. Family-friendly.",
+    hours:"Seasonal May–Sep · 11am–11pm",seasonal:true,
+    highlights:["Pirate's Seafood Platter","Cannon Ball Pizza","Rum Runner Cocktail"],
+    menuUrl:"http://captainronsatthelake.com/captain-rons-menu/",
+    gfOptions:["GF dinner options available — ask server","Salsa, queso & fajitas (GF)","Gluten-free beer available"],
+    fuel:null
+  },
+
+  // ── UPPER LAKE (MM 40–47) ─────────────────────────
+  {
+    id:29, name:"Formula Boats Mo Gas Dock", type:"fuel", mm:1, cove:"Grand Glaize Arm",
+    lat:38.1562, lng:-92.6268, icon:"⛽",
+    phone:"(573) 302-8000",
+    website:"https://formulaboatsmo.com/",
+    address:null,
+    desc:"ValvTech-certified marina in a protected no-wake cove. Three fuel grades including diesel. Seasonal operation.",
+    hours:"Seasonal May–Sep",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:null,
+    fuel:{types:["87 Regular","91 Premium","Diesel"],prices:{87:"3.27",91:"3.71",diesel:"3.48"},priceDate:"Jun 2025",hours:"Seasonal — call ahead",pricesUrl:"https://formulaboatsmo.com/gas-dock.asp",note:"ValvTech certified. No-wake approach cove. Credit card accepted."}
+  },
+  {
+    id:28, name:"Big Dick's Halfway Inn", type:"restaurant", mm:47, cove:"Osage Arm (MM 47)",
+    lat:38.18605, lng:-92.93627, icon:"🍺",
+    phone:"(573) 374-1919",
+    website:"https://www.facebook.com/bigdickshalfwayinn/",
+    address:null,
+    desc:"A true LOTO institution in Blue Cat Cove on the Osage Arm. Fully boat-accessible — boaters travel 20+ miles to visit. Known for massive portions and the legendary Minnow Shot.",
+    hours:"Seasonal May–Sep · Noon–midnight",seasonal:true,
+    highlights:["Big Dick's Burger (½ lb)","Pulled Pork Platter","The Minnow Shot (signature)"],
+    tags:["late"],
+    menuUrl:"https://bigdickshalfwayinn.com",
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+
+  // ── MM 13 ─────────────────────────────────────────
+  {
+    id:30, name:"Lake House 13", type:"restaurant", mm:13, cove:"Chimney Cove (MM 13)",
+    lat:38.16914, lng:-92.70869, icon:"🏠",
+    phone:"(573) 372-8339",
+    website:"https://www.lakehouse13.com",
+    address:"98 Oasis Cir, Sunrise Beach, MO 65079",
+    desc:"Lakefront bar and grill in Chimney Cove at MM 13. Brick-oven pizzas made with house sourdough crust, steaks, burgers, and full bar. One of the newer spots drawing regulars.",
+    hours:"Wed–Thu 4pm–11pm · Fri–Sat 11am–1am · Sun 11am–11pm · Closed Tue",seasonal:true,
+    highlights:["Sourdough Brick Oven Pizza","Ribeye Steak","BBQ Ribs"],
+    tags:["late"],
+    menuUrl:"https://www.lakehouse13.com/menus?menu=dinner-menu",
+    gfOptions:["Gluten-free pizza crust available — ask server"],
+    fuel:null
+  },
+
+  // ── MM 0 – BAGNELL DAM STRIP ─────────────────────
+  {
+    id:63, name:"Neon Taco", type:"restaurant", mm:0, cove:"Bagnell Dam Strip (MM 0)",
+    lat:38.2012, lng:-92.6306, icon:"🌮",
+    phone:"(573) 964-6064",
+    website:"https://www.theneontaco.com",
+    address:"1076 Bagnell Dam Blvd, Lake Ozark, MO 65049",
+    desc:"Colorful taco bar on the Bagnell Dam Strip with lake views and dock parking. Known for creative tacos, burritos, and bowls. Taco Tuesday is a can't-miss — unlimited tacos and bottomless chips & salsa for under $20. Live music and a festive vibe.",
+    hours:"Seasonal · Opens Mar 13 · Weekdays 11am–close · Weekends 10am–close",seasonal:true,
+    highlights:["Neon Tacos (corn or flour tortilla)","Neon Burrito","Neon Bowl","Taco Tuesday — unlimited tacos & bottomless chips <$20","Live Music","Dock Parking"],
+    tags:["music"],
+    menuUrl:"https://www.theneontaco.com/menu",
+    gfOptions:["Corn tortillas available (GF)","Check with your server for other gluten-free options"],
+    fuel:null
+  },
+
+  // ── MM 3 – GLENCOVE ────────────────────────────────
+  {
+    id:31, name:"Big Thunder Marina at Glencove", type:"fuel", mm:3, cove:"Glencove (MM 3)",
+    lat:38.2066761, lng:-92.6824883, icon:"⛽",
+    phone:"(573) 365-4001",
+    website:"https://bigthundermarine.com/glencove-marina/",
+    address:"147 Glencove Blvd, Lake Ozark, MO 65049",
+    desc:"Big Thunder Marine full-service marina and gas dock at MM 3 — one of the first fuel stops coming off the dam. Ethanol-free 87, 93 premium, and diesel. Sea store stocked with beer, ice, and snacks.",
+    hours:"Seasonal — call ahead",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:true,
+    fuel:{types:["87 Ethanol-Free","93 Premium","Diesel (Red Dye)"],prices:{87:null,93:null,diesel:null},priceDate:null,hours:"Seasonal — call ahead",note:"Ethanol-free 87 — great for older engines and PWCs. Sea store on site. Pump-out available."}
+  },
+  {
+    id:62, name:"Big Thunder Marine — Yacht Haven", type:"fuel", mm:1, cove:"Jennings Branch Cove (MM 1)",
+    lat:38.2020, lng:-92.6470, icon:"⛽",
+    phone:"(573) 365-4001",
+    website:"https://bigthundermarine.com/yacht-haven/",
+    address:"197 Hidden Acres Rd, Lake Ozark, MO 65049",
+    desc:"Big Thunder Marine fuel dock in Jennings Branch Cove at MM 1 — no-wake zone, ¼ mile from Horseshoe Bend Pkwy. Slip leasing and boat storage available.",
+    hours:"Seasonal — reopens Mar 2026",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:null, xtow:false,
+    fuel:{types:["87 Regular","93 Premium"],prices:{87:null,93:null},priceDate:null,hours:"Seasonal — call ahead",note:"Big Thunder Marine location. Seasonal operation — call ahead to confirm fuel availability."}
+  },
+
+  // ── UPPER LAKE (MM 50–60) ─────────────────────────
+  {
+    id:32, name:"Red Fox Bar & Grill", type:"both", mm:50, cove:"Upper Lake (MM 50)",
+    lat:38.174573, lng:-92.975873, icon:"🦊",
+    phone:"(573) 345-4596",
+    website:"https://www.facebook.com/people/Red-Fox-Bar-and-Grill/100090816563619/",
+    address:"1433 Red Fox Rd, Climax Springs, MO 65324",
+    desc:"A favorite destination bar, grill, and marina in the upper lake near Climax Springs. Casual lakefront atmosphere, cold beer, and classic bar food. Full marina services on site.",
+    hours:"Daily 11am–1am",seasonal:true,
+    highlights:["Pub Burgers","Bar Wings","Cold Draft Beer"],
+    tags:["breakfast","late"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    cstore:null,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:null,91:null},priceDate:null,hours:"Call ahead in shoulder season",note:"Full marina services. Call (573) 345-4596 to confirm fuel availability."}
+  },
+  {
+    id:33, name:"Coffman Marina", type:"fuel", mm:51, cove:"Upper Lake (MM 51)",
+    lat:38.18810, lng:-92.96860, icon:"⛽",
+    phone:"(573) 345-3895",
+    website:null,
+    address:null,
+    desc:"Family-owned marina on the lake since 1967. Reliable full-service fuel dock in the upper lake stretch. Boat repair and parts on site.",
+    hours:"Wed–Mon 8am–5pm · Closed Tue",seasonal:false,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:false,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:null,91:null},priceDate:null,hours:"Wed–Mon 8am–5pm",note:"One of the longest-running marinas on LOTO since 1967. Boat repair and parts available."}
+  },
+  // ── BAGNELL DAM STRIP ─────────────────────────────
+  {
+    id:35, name:"Encore Lakeside Grill & Sky Bar", type:"restaurant", mm:1, cove:"Bagnell Dam Area",
+    lat:38.1772132, lng:-92.626048, icon:"🎭",
+    phone:"(573) 693-9973",
+    website:"https://theencoregrill.com/",
+    address:"3076 Bagnell Dam Blvd, Lake Ozark, MO 65049",
+    desc:"Massive 50,000 sq ft lakefront entertainment complex with 4 bars, 3 stages, a swim-up pool bar, and a rooftop Sky Bar. Note: limited boat dock access — best reached by car from the dam strip.",
+    hours:"Mon–Thu 11:30am–10:30pm · Fri–Sat 11:30am–12:30am · Sun 11:30am–10:30pm",seasonal:false,
+    highlights:["French Dip Sandwich","Wedge Salad","Rooftop Sky Bar"],
+    tags:["late","music"],
+    menuUrl:"https://theencoregrill.com",
+    gfMenuUrl:null,
+    gfOptions:["GF menu available — look for GF labels throughout","GF bun available for all sandwiches (+$2)"],
+    fuel:null
+  },
+
+  // ── NIANGUA ARM ───────────────────────────────────,
+
+  // ── GRAVOIS ARM ────────────────────────────────────
+  {
+    id:37, name:"Jolly Rogers Grub n' Grog", type:"restaurant", mm:4.5, cove:"Gravois Arm (MM 4.5)",
+    lat:38.2707746, lng:-92.7666635, icon:"🗡️",
+    phone:"(573) 392-0700",
+    website:"https://www.grubngrog.com/",
+    address:"28443 Polk Dr, Rocky Mount, MO 65072",
+    desc:"Pirate-themed waterfront bar and grill on the Gravois Arm. 26 beers on tap, live entertainment, playground, and the legendary All-You-Can-Eat Grand Pirate Feast on weekends. A totally unique LOTO experience.",
+    hours:"Seasonal May–Sep · Open daily Memorial–Labor Day · Breakfast served",seasonal:true,
+    highlights:["AYCE Grand Pirate Feast (Sat–Sun)","Kraken Wings","26 Beers on Tap"],
+    tags:["breakfast"],
+    menuUrl:null,
+    gfMenuUrl:null,
+    gfOptions:["GF menu available — ask server","Kitchen preps GF items separately to avoid cross-contamination"],
+    fuel:null
+  },
+  {
+    id:38, name:"Tap & Grill Lakeside Brew Haus", type:"restaurant", mm:6, cove:"Gravois Arm (MM 6)",
+    lat:38.2198583, lng:-92.7509019, icon:"🍺",
+    phone:"(573) 207-0029",
+    website:"https://www.tapandgrillatthelake.com/",
+    address:"31959 Dunwandrin Rd, Gravois Mills, MO 65037",
+    desc:"Upscale craft beer and dining on the Gravois Arm. Certified Angus Beef steaks, fresh grilled seafood, hand-pattied burgers, and an extensive beer list. Waterfront patio with pool and lakeside views.",
+    hours:"Fri 4pm–9pm · Sat–Sun 11am–9pm · Closed Mon–Thu",seasonal:true,
+    highlights:["16oz Certified Angus Beef Ribeye","Grilled Salmon","Swordfish"],
+    menuUrl:"https://tapandgrillatthelake.com",
+    gfMenuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+
+  // ── CRABTREE COVE / MM 17.5 ───────────────────────
+  {
+    id:39, name:"1932 Reserve", type:"restaurant", mm:17.5, cove:"Crabtree Cove (MM 17.5)",
+    lat:38.1535064, lng:-92.6271657, icon:"🥂",
+    phone:"(573) 693-9197",
+    website:"https://www.1932reserve.com/",
+    address:null,
+    desc:"Upscale farm-to-table dining in a historic 1932 building (originally Franklin Lodge). Locally-sourced ingredients, fire pit patio, and dockside seating. One of the few true fine-dining options accessible by boat on LOTO.",
+    hours:"Wed–Thu 4pm–9pm · Fri–Sat 4pm–10pm · Closed Sun–Tue",seasonal:true,
+    highlights:["Truffle Roasted Half Chicken","Cowboy Ribeye Steak","Ahi Tuna Appetizer"],
+    menuUrl:"https://1932reserve.com",
+    gfMenuUrl:null,
+    gfOptions:["GF options available — staff will personally accommodate dietary needs","Ask server — rotating farm-to-table menu"],
+    fuel:null
+  },
+
+  // ── MM 26 ──────────────────────────────────────────
+  {
+    id:40, name:"Papa Chubby's Food & Booze", type:"restaurant", mm:26, cove:"Sunrise Beach (MM 26)",
+    lat:38.1173934, lng:-92.7374954, icon:"🐷",
+    phone:"(573) 374-8000",
+    website:"https://www.papachubbys.com/",
+    address:null,
+    desc:"92-acre lakefront resort, restaurant, and RV campground at MM 26. Casual waterfront BBQ and burgers with cold drinks. Full dock access on Crabtree Cove. RV and tent camping on site.",
+    hours:"Open year-round · 11am–9pm (call ahead in off-season)",seasonal:false,
+    highlights:["BBQ Platter","Smash Burger","Lakeside Campground & RV Park"],
+    tags:["music"],
+    menuUrl:"https://papachubbys.com",
+    gfMenuUrl:null,
+    gfOptions:["Gluten-free pizza available — ask server"],
+    fuel:null
+  },
+
+  // ── MM 31 ──────────────────────────────────────────
+  {
+    id:41, name:"Larry's on the Lake", type:"restaurant", mm:31, cove:"Main Channel (MM 31)",
+    lat:38.076625, lng:-92.765014, icon:"🍔",
+    phone:"(573) 873-5227",
+    website:"https://www.larrywood.org/",
+    address:null,
+    desc:"One of the only floating restaurants permanently docked on LOTO — a four corners MM 31 landmark. Famous for the Big Larry Challenge (5-lb burger). Live music, massive deck bar, great views.",
+    hours:"Mon–Thu Noon–8pm · Fri–Sat 11am–10pm · Sun 11am–8pm",seasonal:true,
+    highlights:["Big Larry Challenge (5-lb burger — finish it FREE!)","Live Music on the Deck","Lakefront Bar Classics"],
+    menuUrl:"https://larrywood.org",
+    gfMenuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+  {
+    id:42, name:"The Fish & Co.", type:"restaurant", mm:31, cove:"Linn Creek (MM 31)",
+    lat:38.0667953, lng:-92.7465438, icon:"🐟",
+    phone:"(573) 873-0022",
+    website:"https://thefishandcompany.com/",
+    address:null,
+    desc:"Waterfront seafood restaurant on Linn Creek at MM 31 with 500+ feet of lakefront. Dock-and-dine access available. Focused on fresh lake and ocean seafood in a casual lakeside setting.",
+    hours:"Seasonal · Call (573) 873-0022 for hours",seasonal:true,
+    highlights:["Fresh Catch of the Day","Dock-and-Dine Access","500 ft of Lakefront Seating"],
+    menuUrl:null,
+    gfMenuUrl:null,
+    gfOptions:["Gluten-free pizza"],
+    fuel:null
+  },
+
+  // ── MM 38 ──────────────────────────────────────────
+  {
+    id:43, name:"Bear Bottom Resort", type:"restaurant", mm:38, cove:"Upper Lake (MM 38)",
+    lat:38.1721059, lng:-92.7909529, icon:"🐻",
+    phone:"(573) 374-6905",
+    website:"https://www.bearbottomresort.com/",
+    address:null,
+    desc:"Large lakefront resort with a full-service restaurant, swim-up pool bar, and two additional bars. Seating for nearly 700 guests. Live entertainment all season long. Boat-accessible with dock space.",
+    hours:"Seasonal · Wed–Thu 4pm–close · Fri Noon–close · Sat–Sun 11am–close",seasonal:true,
+    highlights:["Swim-Up Pool Bar","Full Lakefront Restaurant Menu","Live Entertainment All Season"],
+    menuUrl:null,
+    gfMenuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+
+  // ── MM 45 ──────────────────────────────────────────
+  {
+    id:44, name:"Boondockz Lakefront Bar & Restaurant", type:"restaurant", mm:45, cove:"Upper Lake (MM 45)",
+    lat:38.1737443, lng:-92.9044352, icon:"🎶",
+    phone:"(573) 345-4590",
+    website:"https://www.boondockz.com/",
+    address:null,
+    desc:"Lively lakefront bar and restaurant at MM 45 with a saltwater pool, 2 hot tubs, and poolside service. Live bands and DJs all summer. One of the upper lake's premier party destinations since 2019.",
+    hours:"Seasonal May–Sep · Open daily in peak season",seasonal:true,
+    highlights:["Saltwater Pool & Hot Tub Bar","Live Bands & DJs All Summer","Bar & Grill Menu"],
+    tags:["music"],
+    menuUrl:"https://www.boondockz.com",
+    gfMenuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+
+  // ── MM 59.5 ────────────────────────────────────────
+  {
+    id:45, name:"The Wet Spot Bar & Grill", type:"restaurant", mm:59.5, cove:"Upper Lake (MM 59.5)",
+    lat:38.1914461, lng:-92.9933849, icon:"💦",
+    phone:"(573) 372-9903",
+    website:"https://www.facebook.com/profile.php/?id=61583309978480",
+    address:"33880 Ivy Bend Rd, Stover, MO 65078",
+    desc:"Family-owned waterfront bar and grill in the far upper lake near Stover. Public boat docks, karaoke, shuffleboard, pool tables, and weekend breakfast. A beloved local hangout for the upper lake crowd.",
+    hours:"Wed–Thu 4pm–9pm · Fri 3pm–1:30am · Sat Noon–1:30am · Sat–Sun Breakfast · Closed Mon–Tue",seasonal:false,
+    highlights:["Tater Tot Supreme","Weekend Breakfast Pancakes","Karaoke Nights"],
+    tags:["breakfast","late","livemusic"],
+    menuUrl:null,
+    gfMenuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    fuel:null
+  },
+
+  {
+    id:34, name:"Patriot Point Marina", type:"both", mm:60, cove:"Upper Lake (MM 60)",
+    lat:38.190397, lng:-93.007208, icon:"⚓",
+    phone:"(573) 372-6713",
+    website:"https://www.facebook.com/patriotpointmarina/",
+    address:"34501 Rebel Rd, Stover, MO 65078",
+    desc:"Upper-lake entertainment marina with a waterfront bar, fuel dock, sand volleyball, yard games, splash pad, and live music. Fuel for boats, vehicles, and ATVs. A growing destination spot.",
+    hours:"Seasonal · Call (573) 372-6713 for current hours",seasonal:true,
+    highlights:["Waterfront Bar & Sports Lounge","Live Music & Volleyball","Ice Cream & C-Store"],
+    menuUrl:"https://patriotpointmarina.com",
+    gfOptions:["Check with your server for gluten-free options"],
+    cstore:true, xtow:true,
+    fuel:{types:["91 Premium Ethanol-Free"],prices:{91:null},priceDate:null,hours:"Seasonal — call ahead",note:"Ethanol-free 91 premium. Also sells fuel for vehicles, ATVs, and small engines. 12 miles off HWY 135 on Ivy Bend Road. X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── UPPER LAKE — IVY BEND (MM 58) ────────────────
+  {
+    id:46, name:"Ivy Bend Resort & Marina", type:"both", mm:58, cove:"Upper Lake (MM 58)",
+    lat:38.2026436, lng:-92.9843555, icon:"⚓",
+    phone:"(573) 372-5900",
+    website:"https://www.facebook.com/IvyBendResort",
+    address:"33321 Marina Dr, Stover, MO 65078",
+    desc:"Family resort marina on the upper lake featuring Surfside Bay Bar & Grill, covered slips, boat storage, private sandy beach, and WiFi. Full-service gas dock. Great destination for upper-lake boaters.",
+    hours:"Seasonal · Call (573) 372-5900 for hours",seasonal:true,
+    highlights:["Surfside Bay Bar & Grill","Sandy Beach","Covered Slips & Storage"],
+    menuUrl:null,
+    gfOptions:["Check with your server for gluten-free options"],
+    cstore:true,
+    fuel:{types:["87 Regular"],prices:{87:null},priceDate:null,hours:"Seasonal",note:"Full-service gas dock with covered slips and boat storage. C-store on site."}
+  },
+
+  // ── GRAVOIS ARM — STATION 46 ──────────────────────
+  {
+    id:47, name:"Station 46 Marina", type:"fuel", mm:46, cove:"Main Channel (MM 46)",
+    lat:38.1861349, lng:-92.9281689, icon:"⛽",
+    phone:"(573) 895-6001",
+    website:"https://www.station46marina.com/",
+    address:"1719 Cup Tree Rd, Gravois Mills, MO 65037",
+    desc:"Renovated marina on the Gravois Arm with a famous beer cave, convenience store, pontoon and waverunner rentals, vacation rental homes, and a boat ramp. Ethanol-free premium fuel.",
+    hours:"Seasonal · (573) 895-6001",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:true, xtow:true,
+    fuel:{types:["91 Premium Ethanol-Free"],prices:{91:null},priceDate:null,hours:"Seasonal — call ahead",note:"Ethanol-free fuel only. Famous beer cave and full convenience store on site. Boat and waverunner rentals available. X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── LITTLE NIANGUA ARM — G&G MARINA ──────────────
+  {
+    id:48, name:"G&G Marina", type:"fuel", mm:10, cove:"Little Niangua Arm",
+    lat:38.0462036, lng:-92.8372344, icon:"⛽",
+    phone:"(573) 346-2628",
+    website:"https://ggmarina.com/",
+    address:"1528 Maritime Ln, Roach, MO 65787",
+    desc:"Family-owned marina with 50+ years on the Little Niangua Arm. ValvTect ethanol-free marine fuel, full-service boat slips, wet and dry storage, showers, and professional boat sales and service.",
+    hours:"Tue–Sat 8:30am–5pm",seasonal:false,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:false,
+    fuel:{types:["89 Ethanol-Free ValvTect"],prices:{89:null},priceDate:null,hours:"Tue–Sat 8:30am–5pm",note:"ValvTect certified marine fuel — ethanol-free. Showers, ice, soda machine on site. Boat sales and service available. No C-Store."}
+  },
+
+  // ── CHIMNEY COVE — POINTE OASIS (MM 13) ──────────
+  {
+    id:49, name:"Pointe Oasis Resort & Marina", type:"fuel", mm:13, cove:"Chimney Cove (MM 13)",
+    lat:38.1686396, lng:-92.7084577, icon:"⛽",
+    phone:"(573) 374-1400",
+    website:"https://www.pointeoasis.com/",
+    address:"90 Oasis Cir, Sunrise Beach, MO 65079",
+    desc:"Award-winning full-service marina resort with a pro shop stocked with boating essentials and lake apparel. Tritoon and speedboat rentals, pump-out station, boat detailing, and ramp access. One of the highest-rated gas docks on LOTO.",
+    hours:"Seasonal · (573) 374-1400",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:true,
+    fuel:{types:["87 Regular","91 Premium","Diesel"],prices:{87:null,91:null,diesel:null},priceDate:null,hours:"Seasonal — call ahead",note:"Top-rated gas dock with free ice, coffee, and boating essentials at the pro shop. Pump-out available."}
+  },
+
+  // ── PROCTOR COVE — RAVAE'S RV RESORT (MM 55) ─────
+  {
+    id:50, name:"Ravae's RV Resort", type:"fuel", mm:55, cove:"Proctor Cove (MM 55)",
+    lat:38.2506027, lng:-92.942131, icon:"⛽",
+    phone:"(402) 250-5210",
+    website:"https://ravaesrvresort.godaddysites.com/",
+    address:"30048 Proctor Rd, Gravois Mills, MO 65037",
+    desc:"RV resort marina at the end of Proctor Cove with a gas dock and convenience store. Covered boat slips, sewer hook-ups, water, and WiFi. A handy upper-lake fuel stop.",
+    hours:"Seasonal · (402) 250-5210",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:true,
+    fuel:{types:["91 Premium"],prices:{91:null},priceDate:null,hours:"Seasonal — call ahead",note:"C-store with groceries and beverages on site. Covered slips available."}
+  },
+
+  // ── OSAGE BEACH — PREMIER 54 MARINA (MM 20) ──────
+  {
+    id:51, name:"Premier 54 Marina", type:"fuel", mm:20, cove:"Osage Beach (MM 20)",
+    lat:38.1423108, lng:-92.6810905, icon:"⛽",
+    phone:null,
+    website:"https://premier54.com/",
+    address:"5682 Alona Point, Osage Beach, MO 65065",
+    desc:"Highly rated full-service marina on Alona Point with 4.9 stars. Fuel dock, boat slips, pump-out, and professional marine services.",
+    hours:"Seasonal · Opens 8am · (573) 693-1740",seasonal:true,
+    highlights:null, menuUrl:"https://premier54.com", gfOptions:null,
+    cstore:null,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:null,91:null},priceDate:null,hours:"Opens 8am — Seasonal",note:"4.9-star rated marina. Visit premier54.com for current hours and pricing."}
+  },
+
+  // ── UPPER LAKE — BUCKNAKED (MM 76.5) ─────────────
+  {
+    id:52, name:"BuckNaked Restaurant, Bar & Marina", type:"both", mm:76.5, cove:"Upper Lake (MM 76.5)",
+    lat:38.256287, lng:-93.158171, icon:"🍺",
+    phone:"(660) 668-2003",
+    website:"https://bucknakedloto.com/",
+    address:"29580 Waters Edge Rd, Lincoln, MO 65338",
+    desc:"Laid-back waterfront bar and restaurant way up the lake near Lincoln, MO. Known for burgers, southern fried catfish, sandwiches, and live entertainment. Gas dock on site — a rare fuel stop in the far upper lake.",
+    hours:"Wed–Sat 11am–8pm · Sun 11am–6pm · Closed Mon–Tue",seasonal:true,
+    highlights:["Southern Fried Catfish","BuckNaked Burger","Live Entertainment"],
+    menuUrl:"https://bucknakedloto.com",
+    gfOptions:["Check with your server for gluten-free options"],
+    cstore:null,
+    fuel:{types:["91 Premium"],prices:{91:null},priceDate:null,hours:"Call ahead · (660) 668-2003",note:"One of the few fuel docks in the far upper lake. Call ahead to confirm fuel availability before making the trip."}
+  },
+  // ── BIG NIANGUA ARM ──────────────────────────────────────
+  {
+    id:53, name:"The Cave Bar & Grill", type:"restaurant", mm:3, cove:"Big Niangua Arm",
+    lat:38.0737, lng:-92.8108, icon:"🍻",
+    phone:"(573) 502-2283",
+    website:"https://cavebar.com",
+    address:"220 Forever Dr, Camdenton, MO 65020",
+    desc:"Waterfront bar and grill with a huge pool extending into a natural cave. 130 boat slips, live weekend entertainment, and full American menu.",
+    hours:"Thu–Sun 11am–10pm · Seasonal",seasonal:true,
+    highlights:["Cave Pool Experience","Grotto Burgers & Pizza","Bistro Tenderloin Steak","Craft Cocktails"],
+    tags:["music"],
+    menuUrl:"https://cavebar.com",
+    gfOptions:["Nearly entire menu is GF-labeled — look for GF symbols throughout","Dedicated fryer for GF items only (no cross-contamination)","GF bread available for burgers and sandwiches","GF mozzarella sticks, calamari fries, chicken strips & pizza all GF"],
+    cstore:null,
+    fuel:null
+  },
+  {
+    id:54, name:"NautiFish Rum Bar", type:"restaurant", mm:3.5, cove:"Big Niangua Arm",
+    lat:38.07934, lng:-92.82185, icon:"🍹",
+    phone:"(573) 410-9211",
+    website:"https://www.nautifishrumbar.com/",
+    address:"1022 Nautica Rd, Camdenton, MO 65020",
+    desc:"Voted Best Rum Bar at the lake. House-made fruit-infused rum drinks, frozen cocktails, full kitchen. Six garage doors open to lake views with live music weekends.",
+    hours:"Mon–Tue 4pm–10pm · Wed–Thu Noon–10pm · Fri Noon–11:30pm · Sat–Sun 9am–11:30pm",seasonal:true,
+    highlights:["Award-Winning Rum Cocktails","Frozen Drinks","Happy Hour Weekdays 2–5pm","Live Music Weekends"],
+    tags:["music"],
+    menuUrl:"https://www.nautifishrumbar.com/",
+    gfOptions:["Check with your server for gluten-free options"],
+    cstore:null,
+    fuel:null
+  },
+  {
+    id:55, name:"Lamplighter Resort Gas Dock", type:"fuel", mm:2, cove:"Big Niangua Arm",
+    lat:38.0671, lng:-92.7993, icon:"⛽",
+    phone:"(573) 873-5150",
+    website:"https://www.lamplighterresort.com",
+    address:"210 Lamplighter Dr, Camdenton, MO 65020",
+    desc:"Year-round fuel dock at MM 2 on the Big Niangua Arm. Turn onto Lamplighter Dr off Hwy 5 bridge. Lakefront resort with 10 waterfront cabins.",
+    hours:"Open year-round",seasonal:false,
+    highlights:null,
+    menuUrl:null,
+    gfOptions:null,
+    cstore:null,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:null,91:null},priceDate:null,hours:"Open year-round",note:"Call ahead for fuel prices. Easy access off Hwy 5."}
+  },
+  {
+    id:56, name:"Lucky's Gas Dock & Boat Rental", type:"fuel", mm:6, cove:"Big Niangua Arm",
+    lat:38.0893, lng:-92.8413, icon:"⛽",
+    phone:"(573) 222-5778",
+    website:"https://luckysloz.com",
+    address:null,
+    desc:"Formerly Rainbow's End — fully renovated with new fuel tanks, pumps, expanded sun deck, and stocked store with 10 slushie flavors. Tritoon rentals available.",
+    hours:"Seasonal",seasonal:true,
+    highlights:null,
+    menuUrl:null,
+    gfOptions:null,
+    cstore:true,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:null,91:null},priceDate:null,hours:"Seasonal",note:"Stocked store with ice, drinks, snacks. Tritoon rentals with half/full day options."}
+  },
+
+  // ── MM 2 MAIN CHANNEL — POINT RANDALL RESORT ──────────
+  {
+    id:57, name:"Point Randall Resort", type:"fuel", mm:2, cove:"Main Channel (MM 2)",
+    lat:38.2138, lng:-92.6720, icon:"⛽",
+    phone:"(573) 365-2081",
+    website:"https://pointrandallresort.com",
+    address:null,
+    desc:"Full-service resort marina at MM 2 on the main channel. X-Tow partner marina with fuel dock offering 87 regular and 93 premium.",
+    hours:"Seasonal — call ahead",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:null, xtow:true,
+    fuel:{types:["87 Regular","93 Premium"],prices:{87:"3.39",93:"3.79"},priceDate:"Feb 2026",hours:"Seasonal",pricesUrl:"https://pointrandallresort.com/Gas-Dock-and-Mini-Mart.html",note:"X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── MM 7 MAIN CHANNEL — MILLSTONE MARINA ──────────────
+  {
+    id:58, name:"Millstone Marina", type:"fuel", mm:7, cove:"Gravois Arm (MM 7)",
+    lat:38.2365, lng:-92.8319, icon:"⛽",
+    phone:"(573) 372-6272",
+    website:"https://millstonemarinas.com/",
+    address:"18096 Hwy O, Gravois Mills, MO 65037",
+    desc:"Full-service marina at MM 7 on the main channel offering 87 regular, 91 premium, and diesel fuel. X-Tow partner marina.",
+    hours:"Seasonal — call ahead",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:null, xtow:true,
+    fuel:{types:["87 Regular","91 Premium","Diesel"],prices:{87:null,91:null,diesel:null},priceDate:null,hours:"Seasonal",note:"X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── MM 17 MAIN CHANNEL — MARINEMAX ────────────────────
+  {
+    id:59, name:"MarineMax Lake of the Ozarks", type:"fuel", mm:17, cove:"Main Channel (MM 17)",
+    lat:38.173, lng:-92.618, icon:"⛽",
+    phone:"(573) 365-5382",
+    website:"https://www.marinemax.com",
+    address:null,
+    desc:"MarineMax marina on the main channel at MM 17. Offers 91 premium and diesel fuel. X-Tow partner marina.",
+    hours:"Seasonal — call ahead",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:null, xtow:true,
+    fuel:{types:["91 Premium","Diesel"],prices:{91:null,diesel:null},priceDate:null,hours:"Seasonal",note:"X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── MM 34.5 MAIN CHANNEL — PIRATE'S POINT ─────────────
+  {
+    id:60, name:"Pirate's Point Marina", type:"fuel", mm:34.5, cove:"Main Channel (MM 34.5)",
+    lat:38.127, lng:-92.809, icon:"⛽",
+    phone:"(573) 374-1260",
+    website:"https://piratespoint.com",
+    address:null,
+    desc:"Pirate's Point Marina just past Hurricane Deck Bridge at MM 34.5. Offers 87 regular and 93 premium octane fuel. X-Tow partner marina.",
+    hours:"Seasonal — call ahead",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:null, xtow:true,
+    fuel:{types:["87 Regular","93 Premium"],prices:{87:null,93:null},priceDate:null,hours:"Seasonal",note:"X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── BIG NIANGUA ARM MM 5 — MONTEGO BAY ────────────────
+  {
+    id:61, name:"Montego Bay Marina", type:"fuel", mm:5, cove:"Big Niangua Arm (MM 5)",
+    lat:38.053806, lng:-92.811529, icon:"⛽",
+    phone:"(573) 348-4911",
+    website:"https://www.montegobaymarina.com",
+    address:null,
+    desc:"Full-service marina on the Big Niangua Arm at MM 5. Offers 87 regular, 93 premium, and diesel fuel. X-Tow partner marina.",
+    hours:"Seasonal — call ahead",seasonal:true,
+    highlights:null, menuUrl:null, gfOptions:null,
+    cstore:null, xtow:true,
+    fuel:{types:["87 Regular","93 Premium","Diesel"],prices:{87:null,93:null,diesel:null},priceDate:null,hours:"Seasonal",note:"X-Tow Captain's Club members save 10¢/gal."}
+  },
+
+  // ── NEW FUEL DOCKS (from LakeExpo Boat Gas Report) ──────────────────
+
+  {
+    id:64, name:"Berger's Marina", type:"fuel", mm:1, cove:"Main Channel (MM 1)",
+    lat:38.2090, lng:-92.6450, icon:"⛽",
+    phone:"(573) 365-2337",
+    website:"https://bergersmarina.net",
+    address:"159 Hidden Acres, Lake Ozark, MO 65049",
+    desc:"Family-owned marina serving Lake of the Ozarks since 1983. Three generations strong — known for consistently low gas prices and friendly service.",
+    hours:"8:30am–5:30pm · Closed Wed · Sun 10:30am–5:30pm", seasonal:false,
+    highlights:["Low gas prices","Family owned since 1983","Boat service & storage"],
+    tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular","93 Premium"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:"8:30am–5:30pm",note:null},
+    cstore:null, xtow:null
+  },
+
+  {
+    id:65, name:"Dirty Duck Gas Dock", type:"fuel", mm:1, cove:"Grand Glaize Arm (MM 1)",
+    lat:38.1295, lng:-92.6430, icon:"⛽",
+    phone:"(573) 302-7299",
+    website:"https://www.dirtyduckboatrental.com",
+    address:"4905 Robins Circle, Osage Beach, MO 65065",
+    desc:"Family-owned boat rental and gas dock near the Grand Glaize Bridge. Sells Rec 90 ethanol-free fuel — open to all boaters. Get 10¢/gal off when you rent from Dirty Duck.",
+    hours:"Seasonal — call ahead", seasonal:true,
+    highlights:["Rec 90 ethanol-free fuel","10¢/gal off with boat rental","Handicap accessible dock","Gift shop on site"],
+    tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular (Rec 90, ethanol-free)"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:null,note:"10¢/gal discount with Dirty Duck boat rental."},
+    cstore:true, xtow:null
+  },
+
+  {
+    id:66, name:"Buddy's Harbor Gas Dock", type:"fuel", mm:2, cove:"McCoy Cove (MM 2)",
+    lat:38.2110, lng:-92.6555, icon:"⛽",
+    phone:null,
+    website:"https://www.buddysharbor.com/marina",
+    address:"1062 Susan Road, Lake Ozark, MO 65049",
+    desc:"Boutique resort marina at the SW end of McCoy Cove. Gas dock open 9am–6pm daily in season. Also offers boat and jet ski rentals, slips, and a tiki bar.",
+    hours:"9am–6pm daily · Seasonal", seasonal:true,
+    highlights:["Boat & jet ski rentals","24-slip marina","Tiki bar & wood-fired pizza","Easy water access"],
+    tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:"9am–6pm",note:null},
+    cstore:true, xtow:null
+  },
+
+  {
+    id:67, name:"Adventure Marina: North Shore", type:"fuel", mm:3, cove:"Main Channel (MM 3)",
+    lat:38.2220, lng:-92.6800, icon:"⛽",
+    phone:null,
+    website:null,
+    address:null,
+    desc:"Seasonal fuel dock on the north shore of the main channel near MM 3. Offers 87 Regular gasoline. Opens mid-May, closes early October.",
+    hours:"Seasonal mid-May–Oct", seasonal:true,
+    highlights:null, tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:"Seasonal",note:null},
+    cstore:null, xtow:null
+  },
+
+  {
+    id:68, name:"Scooters Rental & Gas Dock", type:"fuel", mm:4, cove:"Main Channel (MM 4)",
+    lat:38.2000, lng:-92.6710, icon:"⛽",
+    phone:"(573) 552-8996",
+    website:"https://scooters-rental.com",
+    address:"67 Cherokee Ct, Lake Ozark, MO 65049",
+    desc:"Boat and jet ski rental with a full gas dock on Horseshoe Bend at MM 4. Sells 87 Regular and 91 Premium. Fill up your tank and get a free ice cream cone!",
+    hours:"8am–6pm · Seasonal", seasonal:true,
+    highlights:["Free ice cream with fill-up","87 & 91 fuel","Boat & jet ski rentals","Safety training included"],
+    tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:"8am–6pm",note:"Free ice cream cone with every fill-up!"},
+    cstore:true, xtow:null
+  },
+
+  {
+    id:69, name:"Gas Hole", type:"fuel", mm:5, cove:"Gravois Arm (MM 5)",
+    lat:38.2680, lng:-92.7720, icon:"⛽",
+    phone:null,
+    website:null,
+    address:null,
+    desc:"Fuel dock on the Gravois Arm at MM 5. Offers 87 Regular and 93 Premium gasoline.",
+    hours:"Seasonal — call ahead", seasonal:true,
+    highlights:null, tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular","93 Premium"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:null,note:null},
+    cstore:null, xtow:null
+  },
+
+  {
+    id:70, name:"Castaways Gas Dock @ LOTO Marina", type:"fuel", mm:5, cove:"Lick Branch Cove (MM 5.5)",
+    lat:38.2260, lng:-92.7200, icon:"⛽",
+    phone:"(573) 552-8485",
+    website:"https://lotomarina.com",
+    address:"30703 Rustic Road, Rocky Mount, MO 65072",
+    desc:"Ethanol-free fuel dock on the north shore at Lick Branch Cove (MM 5.5). Sells 87 and 91 octane Rec 90 ethanol-free gas. Full-service marina with ship store and covered slips.",
+    hours:"Seasonal — call ahead", seasonal:true,
+    highlights:["Ethanol-free 87 & 91 Rec 90","Ship store on site","Covered boat slips","No-wake cove"],
+    tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular (Rec 90)","91 Premium (Rec 90)"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:null,note:"Ethanol-free Rec 90 fuel only."},
+    cstore:true, xtow:null
+  },
+
+  {
+    id:71, name:"Quicky's Boat Rentals & Gas Dock", type:"fuel", mm:18, cove:"Main Channel (MM 18)",
+    lat:38.1530, lng:-92.6400, icon:"⛽",
+    phone:"(573) 552-8151",
+    website:"https://www.quickysboatrentals.com",
+    address:null,
+    desc:"Boat and water toy rentals with a gas dock in a quiet no-wake cove near MM 18. Sells 87 and 91 octane fuel — pay cash for 10¢/gal off. Also has a C-store with beer, wine coolers, and Hawaiian shaved ice.",
+    hours:"Seasonal — call ahead", seasonal:true,
+    highlights:["87 & 91 fuel","10¢/gal off with cash","Beer, wine coolers & shaved ice","Kayak, paddleboard & tube rentals"],
+    tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:null,note:"Pay cash for 10¢/gal discount."},
+    cstore:true, xtow:null
+  },
+
+  {
+    id:72, name:"Surdyke's Port 20", type:"fuel", mm:20, cove:"Main Channel (MM 20)",
+    lat:38.1480, lng:-92.6730, icon:"⛽",
+    phone:null,
+    website:"https://www.surdykeboatrental.com/port-20",
+    address:"5395 Spruce Lane, Osage Beach, MO 65065",
+    desc:"Full-service marina and boat rental at MM 20 (formerly Blue Moon Marina). Gas dock with 87, 93, and diesel. Family owned and operated — voted best boat rental 2022 & 2023.",
+    hours:"Seasonal — call ahead", seasonal:true,
+    highlights:["87, 93 & Diesel fuel","Boat & PWC rentals","Pump-out on dock","Slips up to 54 ft","Bottom paint & service"],
+    tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular","93 Premium","Diesel"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:null,note:null},
+    cstore:null, xtow:null
+  },
+
+  {
+    id:73, name:"Surdyke's KK", type:"fuel", mm:26, cove:"Main Channel (MM 26)",
+    lat:38.1210, lng:-92.7200, icon:"⛽",
+    phone:null,
+    website:"https://www.surdykeboatrental.com",
+    address:null,
+    desc:"Surdyke fuel dock location at MM 26. Sells 87 Regular gasoline. Seasonal operation — closing dependent on weather.",
+    hours:"Seasonal — call ahead", seasonal:true,
+    highlights:null, tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:null,note:null},
+    cstore:null, xtow:null
+  },
+
+  {
+    id:74, name:"Adventure Marina: South Boardwalk", type:"fuel", mm:26, cove:"Main Channel (MM 26)",
+    lat:38.1220, lng:-92.7260, icon:"⛽",
+    phone:null,
+    website:null,
+    address:null,
+    desc:"Seasonal fuel dock at MM 26. Sells 91 octane premium gasoline. Open Fri–Sun 9am–6pm during the season.",
+    hours:"Fri–Sun 9am–6pm · Seasonal", seasonal:true,
+    highlights:null, tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["91 Premium"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:"Fri–Sun 9am–6pm",note:null},
+    cstore:null, xtow:null
+  },
+
+  {
+    id:75, name:"Hiawatha Beach", type:"fuel", mm:67, cove:"Upper Lake (MM 67)",
+    lat:38.2520, lng:-93.0240, icon:"⛽",
+    phone:null,
+    website:null,
+    address:null,
+    desc:"Fuel dock in the upper lake area near MM 67. Limited info available — call ahead to confirm hours and availability.",
+    hours:"Seasonal — call ahead", seasonal:true,
+    highlights:null, tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:null,note:null},
+    cstore:null, xtow:null
+  }
+
+];
+
+// ═══════════════════════════════════════════════════════
+//  BOAT NAVIGATION HELPERS
+// ═══════════════════════════════════════════════════════
+function haversine(lat1,lng1,lat2,lng2){
+  const R=3958.8,dL=(lat2-lat1)*Math.PI/180,dG=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dG/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function bearingDeg(lat1,lng1,lat2,lng2){
+  const dG=(lng2-lng1)*Math.PI/180;
+  const y=Math.sin(dG)*Math.cos(lat2*Math.PI/180);
+  const x=Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180)-Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dG);
+  return(Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+function compassDir(d){
+  return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];
+}
+function nearestLoc(lat,lng){
+  let best=null,minD=Infinity;
+  locs.forEach(l=>{const d=haversine(lat,lng,l.lat,l.lng);if(d<minD){minD=d;best=l;}});
+  return {loc:best,dist:minD};
+}
+
+// ── Navigation state ──────────────────────────────────
+let navDest=null,navWatch2=null;
+
+function startNavigation(id){
+  navDest=locs.find(x=>x.id===id); if(!navDest)return;
+  closeModal();
+  const panel=document.getElementById('nav-panel');
+  panel.style.display='block';
+  document.getElementById('nav-dest-name').textContent=navDest.name;
+  document.getElementById('nav-dest-mm').textContent=`MM ${navDest.mm} · ${navDest.cove}`;
+  document.getElementById('nav-dist').textContent='—';
+  document.getElementById('nav-dir').textContent='—';
+  document.getElementById('nav-your-mm').textContent='—';
+  document.getElementById('nav-status').innerHTML='<span style="font-size:15px;flex-shrink:0">📍</span><span>Acquiring GPS signal…</span>';
+  // Fly map to show destination
+  map.flyTo([navDest.lat,navDest.lng],13,{duration:1.5});
+  if(!navigator.geolocation){
+    document.getElementById('nav-status').innerHTML='<span style="font-size:15px">⚠️</span><span>GPS not supported on this device</span>';
+    return;
+  }
+  if(navWatch2!==null){navigator.geolocation.clearWatch(navWatch2);navWatch2=null;}
+  navWatch2=navigator.geolocation.watchPosition(
+    pos=>updateNav(pos.coords.latitude,pos.coords.longitude,pos.coords.accuracy),
+    ()=>{document.getElementById('nav-status').innerHTML='<span style="font-size:15px">⚠️</span><span>GPS signal lost — check location permissions</span>';},
+    {enableHighAccuracy:true,timeout:15000,maximumAge:3000}
+  );
+}
+
+function updateNav(lat,lng,acc){
+  if(!navDest)return;
+  const dist=haversine(lat,lng,navDest.lat,navDest.lng);
+  const br=bearingDeg(lat,lng,navDest.lat,navDest.lng);
+  const dir=compassDir(br);
+  const {loc:near,dist:nearDist}=nearestLoc(lat,lng);
+  const chPos=nearestChannelMM(lat,lng);
+  const distStr=dist<0.1?`${Math.round(dist*5280)} ft`:dist<10?`${dist.toFixed(1)} mi`:`${Math.round(dist)} mi`;
+  document.getElementById('nav-dist').textContent=distStr;
+  document.getElementById('nav-dir').textContent=dir;
+  // Show MM position: on main channel show "MM X", on arm show "ARM X" with sub-note
+  if(chPos){
+    if(chPos.type==='mc'){
+      document.getElementById('nav-your-mm').innerHTML=`MM ${chPos.mm}`;
+    } else {
+      // On an arm: show arm code + MM, with main channel entry point below
+      document.getElementById('nav-your-mm').innerHTML=
+        `<span style="font-size:15px;font-weight:800;line-height:1.1;display:block">${chPos.arm} ${chPos.mm}</span>`+
+        `<span style="font-size:9px;opacity:.65;font-weight:600">↪ MC ${chPos.mcMM}</span>`;
+    }
+  } else {
+    document.getElementById('nav-your-mm').textContent='?';
+  }
+  let statusMsg;
+  if(dist<0.08){
+    statusMsg='<span style="font-size:15px;flex-shrink:0">🎯</span><span><b>You have arrived!</b> Look for the dock.</span>';
+  } else if(dist<0.4){
+    statusMsg=`<span style="font-size:15px;flex-shrink:0">🔔</span><span>Approaching — ${Math.round(dist*5280)} ft to go, reduce speed</span>`;
+  } else {
+    const nearNote=near&&nearDist<1?`, near <b>${near.name}</b>`:'';
+    // If destination is on an arm, show arm MM reference
+    const destMM=navDest.cove&&navDest.cove.includes('Arm')?
+      `${navDest.cove.replace(/\s*\(.*\)/,'').replace(' ','·').substring(0,3).toUpperCase()} ${navDest.mm}`:
+      `MC MM ${navDest.mm}`;
+    statusMsg=`<span style="font-size:15px;flex-shrink:0">🧭</span><span>Head <b>${dir}</b>${nearNote} · destination ${destMM}</span>`;
+  }
+  document.getElementById('nav-status').innerHTML=statusMsg;
+  // Keep user position marker updated
+  updatePos(lat,lng,acc);
+}
+
+function stopNavigation(){
+  if(navWatch2!==null){navigator.geolocation.clearWatch(navWatch2);navWatch2=null;}
+  navDest=null;
+  document.getElementById('nav-panel').style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════
+//  MAP INIT
+// ═══════════════════════════════════════════════════════
+const map = L.map('map',{center:[38.18,-92.76],zoom:11,zoomControl:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',maxZoom:19
+}).addTo(map);
+
+// ═══════════════════════════════════════════════════════
+//  MARKER ICONS
+// ═══════════════════════════════════════════════════════
+function mkIcon(type){
+  const c={restaurant:{bg:'#e8500a',border:'#a83000'},fuel:{bg:'#1a7eb7',border:'#0f5a8a'},both:{bg:'#219a52',border:'#157038'}}[type]||{bg:'#888',border:'#555'};
+  return L.divIcon({
+    html:`<div style="width:32px;height:32px;background:${c.bg};border:2.5px solid ${c.border};border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:2px 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;">
+      <span style="transform:rotate(45deg);font-size:13px;">${type==='fuel'?'⛽':type==='both'?'⛽':'🍽'}</span></div>`,
+    className:'',iconSize:[32,32],iconAnchor:[16,32],popupAnchor:[0,-34]
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let filter='all', query='', subFilter='', fuelFilter='', sheetOpen=false, gpsOn=false, watchId=null;
+let markers={}, coveLabels=[], userMarker=null, userCircle=null, firstFix=true;
+const mmChannelPts=[
+  // Source: Missouri DNR / Ameren GIS — ArcGIS FeatureServer/2 (exact query results)
+  // Official lake mile markers, Bagnell Dam (MM 1) to Truman Dam (MM 93)
+  {mm:1,  lat:38.2114, lng:-92.6410},
+  {mm:2,  lat:38.2153, lng:-92.6587},
+  {mm:3,  lat:38.2166, lng:-92.6770},
+  {mm:4,  lat:38.2186, lng:-92.6949},
+  {mm:5,  lat:38.2224, lng:-92.7127},
+  {mm:6,  lat:38.2214, lng:-92.7309},
+  {mm:7,  lat:38.2157, lng:-92.7473},  // Toad Cove / Party Cove
+  {mm:8,  lat:38.2057, lng:-92.7602},  // Gravois Arm branches off
+  {mm:9,  lat:38.1913, lng:-92.7611},
+  {mm:10, lat:38.1803, lng:-92.7507},  // Sunrise Beach
+  {mm:11, lat:38.1789, lng:-92.7325},
+  {mm:12, lat:38.1804, lng:-92.7144},
+  {mm:13, lat:38.1814, lng:-92.6961},
+  {mm:14, lat:38.1843, lng:-92.6765},
+  {mm:15, lat:38.1856, lng:-92.6585},
+  {mm:16, lat:38.1822, lng:-92.6412},  // Community Bridge
+  {mm:17, lat:38.1693, lng:-92.6344},  // Crabtree Cove / Backwater Jack's
+  {mm:18, lat:38.1552, lng:-92.6384},
+  {mm:19, lat:38.1458, lng:-92.6506},  // Dog Days
+  {mm:20, lat:38.1461, lng:-92.6689},  // Grand Glaize Arm nearby
+  {mm:21, lat:38.1494, lng:-92.6868},
+  {mm:22, lat:38.1532, lng:-92.7045},
+  {mm:23, lat:38.1546, lng:-92.7227},
+  {mm:24, lat:38.1485, lng:-92.7380},
+  {mm:25, lat:38.1344, lng:-92.7343},
+  {mm:26, lat:38.1234, lng:-92.7228},  // Osage Beach / Grand Glaize
+  {mm:27, lat:38.1145, lng:-92.7086},
+  {mm:28, lat:38.1022, lng:-92.7093},
+  {mm:29, lat:38.1026, lng:-92.7275},
+  {mm:30, lat:38.0967, lng:-92.7441},
+  {mm:31, lat:38.0869, lng:-92.7572},
+  {mm:32, lat:38.0941, lng:-92.7707},
+  {mm:33, lat:38.1066, lng:-92.7800},
+  {mm:34, lat:38.1176, lng:-92.7915},
+  {mm:35, lat:38.1267, lng:-92.8056},  // Hurricane Deck Bridge
+  {mm:36, lat:38.1403, lng:-92.8082},
+  {mm:37, lat:38.1531, lng:-92.8001},
+  {mm:38, lat:38.1662, lng:-92.7978},
+  {mm:39, lat:38.1617, lng:-92.8123},
+  {mm:40, lat:38.1530, lng:-92.8258},
+  {mm:41, lat:38.1463, lng:-92.8416},
+  {mm:42, lat:38.1453, lng:-92.8600},
+  {mm:43, lat:38.1536, lng:-92.8765},
+  {mm:44, lat:38.1670, lng:-92.8849},
+  {mm:45, lat:38.1780, lng:-92.8969},
+  {mm:46, lat:38.1831, lng:-92.9160},
+  {mm:47, lat:38.1781, lng:-92.9328},
+  {mm:48, lat:38.1684, lng:-92.9441},
+  {mm:49, lat:38.1669, lng:-92.9625},
+  {mm:50, lat:38.1763, lng:-92.9719},  // Upper lake
+  {mm:51, lat:38.1893, lng:-92.9639},
+  {mm:52, lat:38.2021, lng:-92.9563},
+  {mm:53, lat:38.2099, lng:-92.9410},
+  {mm:54, lat:38.2208, lng:-92.9337},
+  {mm:55, lat:38.2304, lng:-92.9448},
+  {mm:56, lat:38.2273, lng:-92.9638},
+  {mm:57, lat:38.2144, lng:-92.9718},
+  {mm:58, lat:38.2012, lng:-92.9791},
+  {mm:59, lat:38.1895, lng:-92.9898},
+  {mm:60, lat:38.1878, lng:-93.0069},
+  {mm:61, lat:38.1978, lng:-93.0193},
+  {mm:62, lat:38.2087, lng:-93.0106},
+  {mm:63, lat:38.2120, lng:-92.9928},
+  {mm:64, lat:38.2208, lng:-92.9875},
+  {mm:65, lat:38.2238, lng:-93.0050},
+  {mm:66, lat:38.2379, lng:-93.0122},
+  {mm:67, lat:38.2504, lng:-93.0237},
+  {mm:68, lat:38.2598, lng:-93.0376},
+  {mm:69, lat:38.2703, lng:-93.0500},
+  {mm:70, lat:38.2703, lng:-93.0676},
+  {mm:71, lat:38.2596, lng:-93.0794},
+  {mm:72, lat:38.2462, lng:-93.0864},
+  {mm:73, lat:38.2351, lng:-93.0969},
+  {mm:74, lat:38.2323, lng:-93.1145},
+  {mm:75, lat:38.2367, lng:-93.1319},
+  {mm:76, lat:38.2444, lng:-93.1474},
+  {mm:77, lat:38.2536, lng:-93.1616},
+  {mm:78, lat:38.2600, lng:-93.1780},
+  {mm:79, lat:38.2608, lng:-93.1962},
+  {mm:80, lat:38.2560, lng:-93.2133},
+  {mm:81, lat:38.2629, lng:-93.2285},
+  {mm:82, lat:38.2720, lng:-93.2424},
+  {mm:83, lat:38.2744, lng:-93.2604},
+  {mm:84, lat:38.2727, lng:-93.2783},
+  {mm:85, lat:38.2692, lng:-93.2961},
+  {mm:86, lat:38.2697, lng:-93.3137},
+  {mm:87, lat:38.2670, lng:-93.3317},
+  {mm:88, lat:38.2587, lng:-93.3458},
+  {mm:89, lat:38.2450, lng:-93.3508},
+  {mm:90, lat:38.2352, lng:-93.3637},
+  {mm:91, lat:38.2366, lng:-93.3798},
+  {mm:92, lat:38.2481, lng:-93.3893},  // Near Truman Dam
+  {mm:93, lat:38.2588, lng:-93.3978},
+];
+let mmLayerMarkers=[];
+
+// Arm channel coordinates — Source: MO DNR ArcGIS FeatureServer/2 (Layer 2)
+// MILE field uses "base+offset" notation: e.g. "6.2+5" = Gravois Arm MM 5
+// Each entry: {arm, label, mcMM, mm, lat, lng}
+const armChannelPts=[
+  // ── Gravois Arm (GRA) — junction at MC MM 6.2, extends 10.5 mi ──
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:1,  lat:38.2311, lng:-92.7466},
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:2,  lat:38.2414, lng:-92.7485},
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:3,  lat:38.2512, lng:-92.7488},
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:4,  lat:38.2628, lng:-92.7555},
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:5,  lat:38.2670, lng:-92.7712},
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:6,  lat:38.2786, lng:-92.7805},
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:7,  lat:38.2858, lng:-92.7947},
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:8,  lat:38.3002, lng:-92.7937},
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:9,  lat:38.3137, lng:-92.8010},
+  {arm:'GRA',label:'Gravois Arm',mcMM:6, mm:10, lat:38.3123, lng:-92.8185},
+  // ── Grand Glaize Arm (GGA) — junction at MC MM 18.8, extends 16.8 mi ──
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:1,  lat:38.1294, lng:-92.6426},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:2,  lat:38.1183, lng:-92.6390},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:3,  lat:38.1177, lng:-92.6573},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:4,  lat:38.1104, lng:-92.6578},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:5,  lat:38.1034, lng:-92.6451},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:6,  lat:38.1033, lng:-92.6252},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:7,  lat:38.0922, lng:-92.6182},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:8,  lat:38.1035, lng:-92.6078},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:9,  lat:38.0984, lng:-92.5916},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:10, lat:38.0865, lng:-92.5972},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:11, lat:38.0849, lng:-92.5797},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:12, lat:38.0713, lng:-92.5786},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:13, lat:38.0727, lng:-92.5676},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:14, lat:38.0775, lng:-92.5519},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:15, lat:38.0847, lng:-92.5372},
+  {arm:'GGA',label:'Grand Glaize Arm',mcMM:19, mm:16, lat:38.0761, lng:-92.5255},
+  // ── Little Niangua Arm (LNA) — junction at MC MM 30.9, extends 2.7 mi ──
+  {arm:'LNA',label:'Little Niangua Arm',mcMM:31, mm:1, lat:38.0830, lng:-92.7600},
+  {arm:'LNA',label:'Little Niangua Arm',mcMM:31, mm:2, lat:38.0780, lng:-92.7700},
+  // ── Big Niangua Arm (BNA) — junction at MC MM 31.2, extends 20 mi ──
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:1,  lat:38.0830, lng:-92.7776},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:2,  lat:38.0852, lng:-92.7952},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:3,  lat:38.0810, lng:-92.8123},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:4,  lat:38.0672, lng:-92.8123},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:5,  lat:38.0619, lng:-92.8275},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:6,  lat:38.0481, lng:-92.8265},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:7,  lat:38.0343, lng:-92.8243},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:8,  lat:38.0214, lng:-92.8286},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:9,  lat:38.0182, lng:-92.8115},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:10, lat:38.0277, lng:-92.8011},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:11, lat:38.0190, lng:-92.7996},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:12, lat:38.0107, lng:-92.7970},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:13, lat:38.0019, lng:-92.7891},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:14, lat:37.9880, lng:-92.7856},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:15, lat:37.9795, lng:-92.7763},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:16, lat:37.9768, lng:-92.7907},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:17, lat:37.9742, lng:-92.8068},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:18, lat:37.9609, lng:-92.8051},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:19, lat:37.9478, lng:-92.8085},
+  {arm:'BNA',label:'Big Niangua Arm',mcMM:31, mm:20, lat:37.9546, lng:-92.8182},
+];
+let armLayerMarkers=[];
+
+// ═══════════════════════════════════════════════════════
+//  FILTER / SEARCH
+// ═══════════════════════════════════════════════════════
+function filtered(){
+  if(filter==='myplaces')return [];
+  return locs.filter(l=>{
+    // type:'both' matches restaurant, fuel, and all tabs
+    const fm = filter==='all'
+      || l.type===filter
+      || (l.type==='both' && (filter==='restaurant'||filter==='fuel'));
+    const q=query.trim().toLowerCase();
+    const sm=!q||l.name.toLowerCase().includes(q)||l.cove.toLowerCase().includes(q)||
+              String(l.mm).includes(q)||(l.desc||'').toLowerCase().includes(q);
+    const sf=!subFilter||(l.tags&&l.tags.includes(subFilter));
+    // fuel grade filter: only apply when a grade is selected and location has fuel
+    const ff=!fuelFilter||
+      (l.fuel&&l.fuel.types&&l.fuel.types.some(t=>{
+        const tl=t.toLowerCase();
+        if(fuelFilter==='diesel') return tl.includes('diesel');
+        if(fuelFilter==='87')     return tl.includes('87');
+        if(fuelFilter==='91')     return tl.includes('91');
+        if(fuelFilter==='93')     return tl.includes('93');
+        return false;
+      }));
+    return fm&&sm&&sf&&ff;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER MARKERS
+// ═══════════════════════════════════════════════════════
+function renderMarkers(){
+  Object.values(markers).forEach(m=>map.removeLayer(m));
+  coveLabels.forEach(c=>map.removeLayer(c));
+  markers={}; coveLabels=[];
+
+  const fl=filtered();
+  fl.forEach(l=>{
+    const m=L.marker([l.lat,l.lng],{icon:mkIcon(l.type)});
+    const typeStr=l.type==='both'?'Restaurant & Fuel':l.type==='fuel'?'Fuel Dock':'Restaurant / Bar';
+    m.bindPopup(`
+      <div class="pp-name">${l.icon} ${l.name}</div>
+      <div class="pp-type">${typeStr}</div>
+      <div class="pp-desc">${l.desc}</div>
+      <div class="pp-mm">⚓ MM ${l.mm}</div>
+      <button class="pp-btn" onclick="openDetail(${l.id})">View Details →</button>
+    `,{maxWidth:240});
+    // permanent name tag — only shown when zoom>=13
+    m.bindTooltip(l.name,{permanent:map.getZoom()>=13,direction:'right',offset:[14,-10],className:'pin-tooltip'});
+    m.addTo(map);
+    markers[l.id]=m;
+  });
+
+  // MM labels via renderMMMarkers()
+  renderMMMarkers();
+
+  renderList();
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER LIST
+// ═══════════════════════════════════════════════════════
+function renderList(){
+  const list=document.getElementById('loc-list');
+  const noR=document.getElementById('no-results');
+  noR.style.display='none';
+
+  if(filter==='myplaces'){
+    const cnt=myPlaces.length;
+    document.getElementById('count-label').textContent=`(${cnt} places)`;
+    if(!cnt){
+      list.innerHTML='<div style="padding:48px 20px;text-align:center;color:#aaa;font-size:14px">No saved places yet.<br><small style=\'font-size:11px\'>Tap ➕ on the map, then tap to drop a pin.</small></div>';
+      return;
+    }
+    let html='';
+    myPlaces.forEach(p=>{
+      html+=`<div class="loc-row" onclick="flyToMP(${p.id})">
+        <div class="loc-avatar" style="background:#f3e5f5;font-size:22px">${p.icon}</div>
+        <div class="loc-body">
+          <div class="loc-name">${p.name}</div>
+          <div class="loc-sub">${p.note||'My saved place'}</div>
+        </div>
+      </div>`;
+    });
+    list.innerHTML=html;
+    return;
+  }
+
+  const fl=filtered();
+  document.getElementById('count-label').textContent=`(${fl.length} locations)`;
+  if(!fl.length){list.innerHTML='';noR.style.display='block';return;}
+  let html='';
+  fl.slice().sort((a,b)=>a.mm-b.mm).forEach(l=>{
+    const avClass=l.type==='fuel'?'av-f':l.type==='both'?'av-b':'av-r';
+    html+=`<div class="loc-row" onclick="flyTo(${l.id})">
+      <div class="loc-avatar ${avClass}">${l.icon}</div>
+      <div class="loc-body">
+        <div class="loc-name">${l.name}</div>
+        <div class="loc-sub">${l.desc.substring(0,60)}…</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+        <div class="mm-badge">MM ${l.mm}</div>
+        ${(l.type==='fuel'||l.type==='both')&&l.cstore===true?'<div style="font-size:9px;font-weight:800;color:#2e7d32;background:#e8f5e9;padding:2px 6px;border-radius:5px;white-space:nowrap">🏪 C-STORE</div>':''}
+      </div>
+    </div>`;
+  });
+  list.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════
+//  FLY TO / OPEN DETAIL
+// ═══════════════════════════════════════════════════════
+function flyTo(id){
+  const l=locs.find(x=>x.id===id); if(!l)return;
+  closeSheet();
+  setTimeout(()=>{
+    map.flyTo([l.lat,l.lng],15,{duration:1.2});
+    setTimeout(()=>{if(markers[id])markers[id].openPopup();},1300);
+  },200);
+}
+
+function openDetail(id){
+  const l=locs.find(x=>x.id===id); if(!l)return;
+  const typeStr=l.type==='both'?'Restaurant & Fuel Dock':l.type==='fuel'?'Fuel Dock':'Restaurant / Bar';
+  const avClass=l.type==='fuel'?'av-f':l.type==='both'?'av-b':'av-r';
+
+  // ── seasonal / closed banner ───────────────────────
+  const mo=new Date().getMonth(); // 0=Jan … 11=Dec
+  const offSeason=(mo>=10||mo<=2); // Nov–Mar
+  const isClosed=l.closed||(l.seasonal&&offSeason);
+  let closedBanner='';
+  if(l.closed){
+    closedBanner=`<div class="closed-banner">⚠️ Temporarily closed — call ahead to confirm.</div>`;
+  } else if(l.seasonal&&offSeason){
+    closedBanner=`<div class="season-closed">❄️ Closed for Winter Season — Expected to reopen Spring 2026. Call ahead to confirm.</div>`;
+  }
+
+  // ── address ───────────────────────────────────────
+  const addrHtml=l.address?`<div class="addr-row">🗺 <a class="addr-link" href="https://maps.apple.com/?q=${encodeURIComponent(l.address)}" target="_blank">${l.address}</a></div>`:'';
+  const phoneHtml=l.phone?`<div class="addr-row">📞 <a class="phone-link" href="tel:${l.phone.replace(/\D/g,'')}">${l.phone}</a></div>`:'';
+  const websiteBtn=l.website?`<a class="website-btn" href="${l.website}" target="_blank">${l.website.toLowerCase().includes('facebook')?'📘 Facebook':'🌐 Website'}</a>`:'';
+  const websiteRow=websiteBtn?`<div style="margin-top:6px">${websiteBtn}</div>`:'';
+
+  // ── menu highlights + link ────────────────────────
+  let menuHtml='';
+  if(l.highlights&&l.highlights.length){
+    const chips=l.highlights.map(h=>`<span class="highlight-chip">${h}</span>`).join('');
+    const menuBtn=l.menuUrl?`<a class="menu-link-btn" href="${l.menuUrl}" target="_blank">📋 View Full Menu</a>`:'';
+    const gfBtn=l.gfMenuUrl?`<a class="gf-menu-btn" href="${l.gfMenuUrl}" target="_blank">🌾 GF Menu</a>`:'';
+    const btnsRow=(menuBtn||gfBtn)?`<div class="menu-btns-row">${menuBtn}${gfBtn}</div>`:'';
+    menuHtml=`<div class="section-label">Menu Highlights</div>
+      <div class="highlights-row">${chips}</div>${btnsRow}`;
+  }
+
+  // ── GF options (non-salad) ────────────────────────
+  let gfHtml='';
+  if(l.type!=='fuel'&&l.type!=='both'||l.highlights){
+    gfHtml=`<div class="section-label" style="margin-top:14px">Gluten-Free Options</div><div class="gf-section">`;
+    if(l.gfOptions&&l.gfOptions.length){
+      gfHtml+=l.gfOptions.map(o=>`<div class="gf-item">${o}</div>`).join('');
+    } else if(l.type!=='fuel'){
+      gfHtml+=`<div class="gf-none">No options listed online — ask your server, options may be available</div>`;
+    }
+    // GF menu button for locations that don't have highlights section (fuel+food combos)
+    if(l.gfMenuUrl&&!l.highlights){
+      gfHtml+=`<div class="menu-btns-row" style="margin-top:8px"><a class="gf-menu-btn" href="${l.gfMenuUrl}" target="_blank">🌾 GF Menu</a></div>`;
+    }
+    gfHtml+=`</div>`;
+  }
+
+  // ── fuel section ──────────────────────────────────
+  let fuelHtml='';
+  if(l.fuel){
+    fuelHtml=`<div class="section-label" style="margin-top:14px">Fuel Available</div>
+      ${l.xtow?`<div class="xtow-badge">🔑 XTow 10¢/gal discount</div>`:''}
+      <table class="fuel-table"><thead><tr><th>Grade</th><th>Available</th><th>Price / Gal</th></tr></thead><tbody>`;
+    l.fuel.types.forEach(t=>{
+      const priceKey=t.toLowerCase().includes('diesel')?'diesel':t.includes('87')?'87':t.includes('89')?'89':t.includes('93')?'93':'91';
+      const price=l.fuel.prices[priceKey];
+      fuelHtml+=`<tr><td>${t}</td><td class="fuel-avail">✓</td><td class="fuel-price">${price?'$'+price+'/gal':'Check at dock'}</td></tr>`;
+    });
+    const dateNote=l.fuel.priceDate?` · Last updated: ${l.fuel.priceDate}`:'';
+    fuelHtml+=`</tbody></table>
+      <div class="price-note">ℹ️ ${l.fuel.note}${dateNote}</div>
+      <a class="menu-link-btn" style="margin-top:8px;font-size:11px;padding:6px 12px;" href="https://www.lakeexpo.com/boating/boat_gas_report/" target="_blank">⛽ Live Gas Prices — Lake Expo</a>
+      ${l.cstore===true?`<div style="margin-top:8px;font-size:12px;font-weight:700;color:#2e7d32;background:#e8f5e9;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:6px">🏪 C-Store on site</div>`:l.cstore===false?`<div style="margin-top:8px;font-size:12px;color:#999;background:#f5f5f5;border-radius:8px;padding:6px 10px">No C-Store at this dock</div>`:''}
+      `;
+  }
+
+  const hoursColor=l.seasonal?'seasonal':'';
+
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-icon-row">
+      <div class="modal-icon ${avClass}">${l.icon}</div>
+      <div><div class="modal-title">${l.name}</div><div class="modal-type">${typeStr}</div></div>
+    </div>
+    <div class="modal-mm">⚓ MM ${l.mm}</div>
+    ${addrHtml}
+    ${phoneHtml}
+    ${websiteRow}
+    ${closedBanner}
+    <div class="section-label">About</div>
+    <div class="description">${l.desc}</div>
+    <div class="hours-row"><div class="hours-dot ${hoursColor}"></div><span>${l.hours}</span></div>
+    ${menuHtml}
+    ${gfHtml}
+    ${fuelHtml}
+    <button class="nav-btn" onclick="startNavigation(${l.id})">🚤 Navigate by Boat</button>
+  `;
+
+  const overlay=document.getElementById('modal-overlay');
+  overlay.classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+document.getElementById('modal-overlay').addEventListener('click',function(e){
+  if(e.target===this)closeModal();
+});
+
+// ═══════════════════════════════════════════════════════
+//  BOTTOM SHEET
+// ═══════════════════════════════════════════════════════
+function openSheet(){sheetOpen=true;document.getElementById('sheet').classList.add('open');document.getElementById('btn-list').textContent='✕ Close';}
+function closeSheet(){sheetOpen=false;document.getElementById('sheet').classList.remove('open');document.getElementById('btn-list').textContent='☰ Directory';}
+document.getElementById('btn-list').addEventListener('click',()=>sheetOpen?closeSheet():openSheet());
+
+// drag down to close
+let touchStartY=0;
+document.getElementById('sheet').addEventListener('touchstart',e=>{touchStartY=e.touches[0].clientY;});
+document.getElementById('sheet').addEventListener('touchmove',e=>{if(e.touches[0].clientY-touchStartY>70)closeSheet();});
+
+// ═══════════════════════════════════════════════════════
+//  FILTER BUTTONS
+// ═══════════════════════════════════════════════════════
+document.querySelectorAll('.ftab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    filter=btn.dataset.f;
+    // Show restaurant sub-filter tabs for restaurant/both/all filters
+    const subTabs=document.getElementById('sub-filter-tabs');
+    const showSub=(filter==='restaurant'||filter==='both'||filter==='all');
+    subTabs.style.display=showSub?'flex':'none';
+    if(!showSub){subFilter='';document.querySelectorAll('.stab').forEach(s=>s.classList.remove('active'));const first=document.querySelector('.stab');if(first)first.classList.add('active');}
+    // Show fuel grade tabs for fuel/both/all filters
+    const fuelTabs=document.getElementById('fuel-filter-tabs');
+    const showFuel=(filter==='fuel'||filter==='both'||filter==='all');
+    fuelTabs.style.display=showFuel?'flex':'none';
+    if(!showFuel){fuelFilter='';document.querySelectorAll('.ftuel').forEach(s=>s.classList.remove('active'));const first=document.querySelector('.ftuel');if(first)first.classList.add('active');}
+    renderMarkers();
+  });
+});
+document.querySelectorAll('.stab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.stab').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    subFilter=btn.dataset.sf;
+    renderMarkers();
+  });
+});
+document.querySelectorAll('.ftuel').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(btn.dataset.fg==='prices'){
+      document.querySelectorAll('.ftuel').forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active');
+      openGasPricePanel();
+      return;
+    }
+    document.querySelectorAll('.ftuel').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    fuelFilter=btn.dataset.fg;
+    renderMarkers();
+  });
+});
+
+// ── LAKEEXPO GAS PRICE SCRAPER ─────────────────────────────
+// Fetches weekly Boat Gas Report from LakeExpo.com RSS feed,
+// parses marina prices from the article HTML, and updates locs[] in-place.
+const CORS_PROXIES=['https://corsproxy.io/?url=','https://api.codetabs.com/v1/proxy?quest='];
+const LAKEEXPO_RSS='https://www.lakeexpo.com/search/?f=rss&t=article&c=boating/boat_gas_report&l=5&s=start_time&sd=desc';
+
+// Try multiple CORS proxies with fallback
+async function corseFetch(url){
+  for(const proxy of CORS_PROXIES){
+    try{
+      const resp=await fetch(proxy+encodeURIComponent(url));
+      if(resp.ok) return resp;
+    }catch(e){/* try next */}
+  }
+  throw new Error('All CORS proxies failed');
+}
+
+async function fetchLakeExpoPrices(){
+  try{
+    // 1. Fetch RSS feed to find latest article URL
+    const rssResp=await corseFetch(LAKEEXPO_RSS);
+    const rssText=await rssResp.text();
+    const parser=new DOMParser();
+    const rssDoc=parser.parseFromString(rssText,'text/xml');
+    const items=rssDoc.querySelectorAll('item');
+    if(!items.length) throw new Error('No articles found');
+
+    // Find the most recent gas report article
+    const firstItem=items[0];
+    const articleUrl=firstItem.querySelector('link')?.textContent?.trim();
+    const pubDate=firstItem.querySelector('pubDate')?.textContent?.trim();
+    if(!articleUrl) throw new Error('No article URL');
+
+    // 2. Fetch the article page
+    const artResp=await corseFetch(articleUrl);
+    if(!artResp.ok) throw new Error('Article fetch failed');
+    const artHtml=await artResp.text();
+
+    // 3. Parse prices from article body
+    // Format: "(MM) Marina Name – $X.XX 87 Octane, $X.XX 93 Octane, $X.XX Diesel"
+    // Strip all HTML tags first for cleaner parsing
+    const cleanHtml=artHtml.replace(/<a[^>]*>(.*?)<\/a>/gi,'$1').replace(/<\/?(?:strong|b|em|i|span|div|p|br|u)[^>]*>/gi,' ');
+    const priceRegex=/\((\d+)\s*MM\)\s*([^–—\-$]+?)\s*[–—\-]\s*(.+?)(?=\(\d+\s*MM\)|$)/gi;
+    const fuelRegex=/\$(\d+\.\d{2})\s*(87|89|91|93|diesel)\s*(?:octane)?/gi;
+    const parsed=[];
+    let match;
+    while((match=priceRegex.exec(cleanHtml))!==null){
+      const mm=parseInt(match[1]);
+      const rawName=match[2].replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+      const priceStr=match[3];
+      const prices={};
+      let fmatch;
+      while((fmatch=fuelRegex.exec(priceStr))!==null){
+        const key=fmatch[2].toLowerCase();
+        prices[key]=fmatch[1];
+      }
+      fuelRegex.lastIndex=0;
+      if(Object.keys(prices).length>0){
+        parsed.push({mm,name:rawName,prices});
+      }
+    }
+
+    if(parsed.length===0) throw new Error('No prices parsed from article');
+
+    // 4. Match parsed prices to our locs[] by name similarity
+    // Alias map: LakeExpo name fragment → our location name fragment
+    const nameAliases={
+      'frankylou':'franky',        // Franky & Louie's
+      'dogdays':'dogdays',         // Dog Days
+      'redheadyacht':'redhead',    // Redhead Lakeside → Redhead Yacht Club
+      'ggmarina':'gg',             // G&G Marina
+      'shortypants':'shorty',      // Shorty Pants
+      'paradis':'paradise',        // Paradise Tropical
+      'formulaboat':'formula',     // Formula Boats
+      'pointrandall':'pointrandall', // Point Randall
+      'ozarkyacht':'ozarkyacht',   // Ozark Yacht Club
+      'kellysport':'kelly',        // Kelly's Port
+      'mermaidcove':'mermaid',     // Mermaid Cove
+      'villagemarina':'village',   // Village Marina
+      'alhonn':'alhonna',          // Alhonna Resort
+      'backwater':'backwater',     // Backwater Jack's
+      'landshark':'landshark',     // LandShark
+      'captainron':'captainron',   // Captain Ron's
+      'bigdick':'bigdick',         // Big Dick's
+      'lakehouse13':'lakehouse',   // Lake House 13
+      'pier31':'pier31',           // Pier 31
+      'surdykeport20':'surdyke',   // Surdyke's Port 20
+    };
+
+    const dateStr=pubDate?new Date(pubDate).toLocaleDateString('en-US',{month:'short',year:'numeric'}):'';
+    let updated=0;
+    parsed.forEach(p=>{
+      const pName=p.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+      const loc=locs.find(l=>{
+        if(!l.fuel) return false;
+        const lName=l.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+        // Direct match
+        if(lName.includes(pName)||pName.includes(lName)) return true;
+        // Prefix match (first 5+ chars)
+        if(pName.length>4&&lName.length>4&&pName.substring(0,5)===lName.substring(0,5)) return true;
+        // Word overlap: check if any significant word (4+ chars) matches
+        const pWords=pName.match(/.{4,}/g)||[];
+        const lWords=lName.match(/.{4,}/g)||[];
+        if(pWords.some(pw=>lName.includes(pw))||lWords.some(lw=>pName.includes(lw))) return true;
+        // Alias check
+        for(const[alias,target] of Object.entries(nameAliases)){
+          if(pName.includes(alias)&&lName.includes(target)) return true;
+        }
+        // Mile marker proximity + partial name match (3+ chars)
+        if(p.mm===l.mm&&pName.length>2&&lName.length>2&&
+           (pName.substring(0,3)===lName.substring(0,3))) return true;
+        return false;
+      });
+      if(loc&&loc.fuel){
+        Object.entries(p.prices).forEach(([grade,price])=>{
+          if(loc.fuel.prices.hasOwnProperty(grade)){
+            loc.fuel.prices[grade]=price;
+          }
+        });
+        loc.fuel.priceDate=dateStr;
+        updated++;
+      }
+    });
+
+    console.log(`[LOTO] LakeExpo prices: parsed ${parsed.length} marinas, updated ${updated} locations`);
+    return {success:true, parsed:parsed.length, updated, date:dateStr, articleUrl};
+  }catch(err){
+    console.warn('[LOTO] LakeExpo price fetch failed:',err.message);
+    return {success:false, error:err.message};
+  }
+}
+
+// Auto-fetch on load (non-blocking) — updates gas price panel if open
+let lakeExpoLastFetch=null;
+(async()=>{
+  const result=await fetchLakeExpoPrices();
+  lakeExpoLastFetch=result;
+  if(result.success){
+    // Re-render gas prices if panel is open
+    if(document.getElementById('gas-price-panel').classList.contains('open')){
+      renderGasPrices();
+    }
+  }
+})();
+
+// ── GAS PRICE PANEL ────────────────────────────────────────
+let gppGrade='87';
+
+function openGasPricePanel(){
+  document.getElementById('gas-price-panel').classList.add('open');
+  // Show LakeExpo source info
+  const srcEl=document.getElementById('gpp-source');
+  if(srcEl&&lakeExpoLastFetch&&lakeExpoLastFetch.success){
+    srcEl.innerHTML=`📰 Prices from <a href="${lakeExpoLastFetch.articleUrl}" target="_blank" style="color:rgba(255,255,255,.6)">LakeExpo.com</a> · ${lakeExpoLastFetch.date}`;
+  }
+  renderGasPrices();
+}
+function closeGasPricePanel(){
+  const panel=document.getElementById('gas-price-panel');
+  panel.classList.remove('open');
+  // Deselect prices tab, reactivate All Grades
+  document.querySelectorAll('.ftuel').forEach(s=>s.classList.remove('active'));
+  const first=document.querySelector('.ftuel');
+  if(first)first.classList.add('active');
+  fuelFilter='';
+  renderMarkers();
+}
+document.getElementById('gpp-close').addEventListener('click',closeGasPricePanel);
+
+document.querySelectorAll('.gpp-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.gpp-tab').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    gppGrade=btn.dataset.grade;
+    renderGasPrices();
+  });
+});
+
+function renderGasPrices(){
+  const gradeKey=gppGrade; // '87','91','93','diesel'
+  const list=document.getElementById('gpp-list');
+
+  // Collect all docks that carry this grade
+  const withPrice=[], noPrice=[];
+  locs.forEach(l=>{
+    if(!l.fuel) return;
+    const types=(l.fuel.types||[]).map(t=>t.toLowerCase());
+    const hasGrade=types.some(t=>{
+      if(gradeKey==='diesel') return t.includes('diesel');
+      if(gradeKey==='87')     return t.startsWith('87')||t.includes('87 ');
+      if(gradeKey==='91')     return t.startsWith('91')||t.includes('91 ');
+      if(gradeKey==='93')     return t.startsWith('93')||t.includes('93 ');
+      return false;
+    });
+    if(!hasGrade) return;
+    // Find the matching price key
+    const priceVal=l.fuel.prices[gradeKey];
+    const entry={l, price:priceVal?parseFloat(priceVal):null, date:l.fuel.priceDate};
+    if(entry.price!==null && !isNaN(entry.price)) withPrice.push(entry);
+    else noPrice.push(entry);
+  });
+
+  withPrice.sort((a,b)=>a.price-b.price);
+
+  let html='';
+  if(withPrice.length===0 && noPrice.length===0){
+    html='<div class="gpp-section-label">No fuel docks found for this grade</div>';
+  }
+
+  if(withPrice.length>0){
+    html+='<div class="gpp-note">💡 Tap any location to view it on the map</div>';
+    withPrice.forEach((entry,i)=>{
+      const rank=i===0?'<span class="gpp-rank gold">🥇</span>':i===1?'<span class="gpp-rank silver">🥈</span>':i===2?'<span class="gpp-rank bronze">🥉</span>':`<span class="gpp-rank">${i+1}</span>`;
+      const dateStr=entry.date?`Updated: ${entry.date}`:'';
+      const mmStr=entry.l.mm?`MM ${entry.l.mm} · `:'';
+      html+=`<div class="gpp-row" data-id="${entry.l.id}">
+        ${rank}
+        <div class="gpp-info">
+          <div class="gpp-name">${entry.l.name}</div>
+          <div class="gpp-sub">${mmStr}${entry.l.cove||''}${dateStr?'<br>'+dateStr:''}</div>
+        </div>
+        <div class="gpp-price">
+          <div class="gpp-price-val">$${entry.price.toFixed(2)}</div>
+          <div class="gpp-price-gal">per gal</div>
+        </div>
+      </div>`;
+    });
+  }
+
+  if(noPrice.length>0){
+    html+=`<div class="gpp-section-label">Price Unknown — Call Ahead (${noPrice.length})</div>`;
+    noPrice.forEach(entry=>{
+      const mmStr=entry.l.mm?`MM ${entry.l.mm} · `:'';
+      html+=`<div class="gpp-row" data-id="${entry.l.id}">
+        <span class="gpp-rank" style="color:rgba(255,255,255,.25)">—</span>
+        <div class="gpp-info">
+          <div class="gpp-name">${entry.l.name}</div>
+          <div class="gpp-sub">${mmStr}${entry.l.cove||''}</div>
+        </div>
+        <div class="gpp-price"><div class="gpp-no-price">Call ahead</div></div>
+      </div>`;
+    });
+  }
+
+  list.innerHTML=html;
+
+  // Tap row → close panel and fly to marker
+  list.querySelectorAll('.gpp-row[data-id]').forEach(row=>{
+    row.addEventListener('click',()=>{
+      const id=parseInt(row.dataset.id);
+      const loc=locs.find(l=>l.id===id);
+      if(!loc) return;
+      closeGasPricePanel();
+      map.flyTo([loc.lat,loc.lng],16,{animate:true,duration:1});
+      setTimeout(()=>{
+        const m=markers[id];
+        if(m) m.openPopup();
+      },1100);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  SEARCH
+// ═══════════════════════════════════════════════════════
+const searchInput=document.getElementById('search-input');
+const searchClear=document.getElementById('search-clear');
+searchInput.addEventListener('input',e=>{
+  query=e.target.value;
+  searchClear.style.display=query?'block':'none';
+  renderMarkers();
+  if(query&&!sheetOpen)openSheet();
+});
+searchClear.addEventListener('click',()=>{
+  searchInput.value='';query='';
+  searchClear.style.display='none';
+  renderMarkers();
+});
+
+// ═══════════════════════════════════════════════════════
+//  GPS / GEOLOCATION
+// ═══════════════════════════════════════════════════════
+const gpsBtn=document.getElementById('btn-gps');
+const toast=document.getElementById('gps-toast');
+
+gpsBtn.addEventListener('click',()=>gpsOn?stopGPS():startGPS());
+
+function startGPS(){
+  if(!navigator.geolocation){alert('Geolocation not supported by your browser.');return;}
+  toast.style.display='block';
+  gpsBtn.classList.add('tracking');
+  gpsBtn.textContent='🔵';
+  gpsOn=true;firstFix=true;
+  watchId=navigator.geolocation.watchPosition(
+    pos=>{updatePos(pos.coords.latitude,pos.coords.longitude,pos.coords.accuracy);toast.style.display='none';},
+    err=>{
+      const msgs={1:'Location access denied — check browser settings.',2:'Location unavailable.',3:'Location request timed out.'};
+      toast.textContent='⚠️ '+(msgs[err.code]||'Location error.');
+      setTimeout(()=>{toast.style.display='none';},3500);
+      stopGPS();
+    },
+    {enableHighAccuracy:true,timeout:15000,maximumAge:5000}
+  );
+}
+
+function stopGPS(){
+  gpsOn=false;
+  if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}
+  if(userMarker){map.removeLayer(userMarker);userMarker=null;}
+  if(userCircle){map.removeLayer(userCircle);userCircle=null;}
+  gpsBtn.classList.remove('tracking');
+  gpsBtn.textContent='📍';
+}
+
+function updatePos(lat,lng,acc){
+  if(userMarker)map.removeLayer(userMarker);
+  if(userCircle)map.removeLayer(userCircle);
+  userCircle=L.circle([lat,lng],{radius:acc,color:'#1a7eb7',fillColor:'#1a7eb7',fillOpacity:.08,weight:1.5,dashArray:'5'}).addTo(map);
+  const icon=L.divIcon({
+    html:`<div style="position:relative;width:20px;height:20px;">
+      <div style="position:absolute;inset:0;background:#1a7eb7;border-radius:50%;border:3px solid white;box-shadow:0 0 0 0 rgba(26,126,183,.7);animation:gp 1.8s infinite;"></div>
+    </div>
+    <style>@keyframes gp{0%{box-shadow:0 0 0 0 rgba(26,126,183,.7)}70%{box-shadow:0 0 0 10px rgba(26,126,183,0)}100%{box-shadow:0 0 0 0 rgba(26,126,183,0)}}</style>`,
+    className:'',iconSize:[20,20],iconAnchor:[10,10]
+  });
+  const chPos=nearestChannelMM(lat,lng);
+  const mmInfo=chPos
+    ? (chPos.type==='mc'
+        ? `MC MM ${chPos.mm}`
+        : `${chPos.label} MM ${chPos.mm} (enters main channel at MC MM ${chPos.mcMM})`)
+    : '';
+  userMarker=L.marker([lat,lng],{icon,zIndexOffset:1000})
+    .bindPopup(`<b>📍 You are here</b>${mmInfo?`<br><small>⚓ ${mmInfo}</small>`:''}<br><small>Accuracy: ±${Math.round(acc)}m</small>`)
+    .addTo(map);
+  if(firstFix){firstFix=false;map.flyTo([lat,lng],14,{duration:1.5});}
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+renderMarkers();
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION CHANNEL LINES (polylines connecting MM points)
+// ═══════════════════════════════════════════════════════
+// Main channel line — connects all 93 MMs
+const mainChannelLine=L.polyline(
+  mmChannelPts.map(p=>[p.lat,p.lng]),
+  {color:'#1a6b96',weight:3,opacity:0.55,smoothFactor:1.5,className:'channel-line-main'}
+).addTo(map);
+
+// Arm channel lines — one polyline per arm
+const armCodes=['GRA','GGA','LNA','BNA'];
+const armChannelLines=[];
+armCodes.forEach(code=>{
+  const pts=armChannelPts.filter(p=>p.arm===code).sort((a,b)=>a.mm-b.mm);
+  if(pts.length<2) return;
+  // Connect arm to main channel at junction point
+  const junctionMM=pts[0].mcMM;
+  const jPt=mmChannelPts.find(p=>p.mm===junctionMM);
+  const coords=jPt?[[jPt.lat,jPt.lng],...pts.map(p=>[p.lat,p.lng])]:pts.map(p=>[p.lat,p.lng]);
+  const line=L.polyline(coords,{color:'#7b1fa2',weight:2.5,opacity:0.45,smoothFactor:1.5,dashArray:'8,6',className:'channel-line-arm'}).addTo(map);
+  armChannelLines.push(line);
+});
+
+// ═══════════════════════════════════════════════════════
+//  MM CHANNEL MARKERS (main channel + arms)
+// ═══════════════════════════════════════════════════════
+function renderMMMarkers(){
+  // Clear main channel markers
+  mmLayerMarkers.forEach(m=>map.removeLayer(m));
+  mmLayerMarkers=[];
+  // Clear arm markers
+  armLayerMarkers.forEach(m=>map.removeLayer(m));
+  armLayerMarkers=[];
+
+  const zoom=map.getZoom();
+  if(zoom<9)return; // hidden at full lake view
+
+  // Main channel: zoom 9-14 every 5 MMs, zoom 15+ every 1 MM
+  const step=zoom<15?5:1;
+  mmChannelPts.filter(d=>d.mm%step===0).forEach(d=>{
+    const m=L.marker([d.lat,d.lng],{
+      icon:L.divIcon({html:`<div class="mm-channel-label">MM ${d.mm}</div>`,className:'',iconAnchor:[20,10]}),
+      interactive:false,zIndexOffset:-200
+    });
+    m.addTo(map);mmLayerMarkers.push(m);
+  });
+
+  // Arm labels: only at zoom 13+ to avoid clutter
+  if(zoom>=13){
+    armChannelPts.forEach(d=>{
+      const m=L.marker([d.lat,d.lng],{
+        icon:L.divIcon({html:`<div class="mm-arm-label">${d.arm} ${d.mm}</div>`,className:'',iconAnchor:[18,10]}),
+        interactive:false,zIndexOffset:-190
+      });
+      m.addTo(map);armLayerMarkers.push(m);
+    });
+  }
+}
+map.on('zoomend',()=>{
+  renderMMMarkers();
+  // Show pin name tooltips only at zoom 10+
+  const showNames=map.getZoom()>=13;
+  Object.values(markers).forEach(m=>{
+    const tt=m.getTooltip();
+    if(!tt) return;
+    if(showNames) m.openTooltip(); else m.closeTooltip();
+  });
+});
+
+// ── Find nearest channel point (main channel or arm) for GPS display ──
+function nearestChannelMM(lat,lng){
+  // Check main channel
+  let bestMC=null, bestMCdist=Infinity;
+  mmChannelPts.forEach(p=>{
+    const d=haversine(lat,lng,p.lat,p.lng);
+    if(d<bestMCdist){bestMCdist=d;bestMC=p;}
+  });
+  // Check arms
+  let bestArm=null, bestArmDist=Infinity;
+  armChannelPts.forEach(p=>{
+    const d=haversine(lat,lng,p.lat,p.lng);
+    if(d<bestArmDist){bestArmDist=d;bestArm=p;}
+  });
+  // Return the closer of the two
+  if(!bestArm||bestMCdist<=bestArmDist){
+    return bestMC?{type:'mc',mm:bestMC.mm,display:`MC ${bestMC.mm}`}:null;
+  } else {
+    return {type:'arm',mm:bestArm.mm,arm:bestArm.arm,label:bestArm.label,
+            mcMM:bestArm.mcMM,display:`${bestArm.arm} ${bestArm.mm}`};
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  MY PLACES
+// ═══════════════════════════════════════════════════════
+const MP_KEY='loto_my_places';
+let myPlaces=[];
+try{myPlaces=JSON.parse(localStorage.getItem(MP_KEY)||'[]');}catch(e){myPlaces=[];}
+let addMode=false,pendingLatLng=null,mpMarkers={},editingId=null;
+function saveMPStorage(){try{localStorage.setItem(MP_KEY,JSON.stringify(myPlaces));}catch(e){}}
+function toggleAddMode(){
+  addMode=!addMode;
+  const fab=document.getElementById('add-fab');
+  const toast=document.getElementById('add-mode-toast');
+  if(addMode){fab.classList.add('add-mode');fab.textContent='✕';toast.style.display='block';if(sheetOpen)closeSheet();}
+  else{fab.classList.remove('add-mode');fab.textContent='➕';toast.style.display='none';closeMPForm();}
+}
+map.on('click',function(e){
+  if(!addMode)return;
+  pendingLatLng=[e.latlng.lat,e.latlng.lng];editingId=null;
+  document.getElementById('mpf-name').value='';document.getElementById('mpf-note').value='';
+  document.querySelectorAll('.icon-opt').forEach(x=>x.classList.remove('selected'));
+  const first=document.querySelector('.icon-opt');if(first)first.classList.add('selected');
+  openMPForm();
+});
+function openMPForm(){document.getElementById('my-place-form').classList.add('open');}
+function closeMPForm(){document.getElementById('my-place-form').classList.remove('open');pendingLatLng=null;}
+function cancelAddPlace(){
+  addMode=false;document.getElementById('add-fab').classList.remove('add-mode');
+  document.getElementById('add-fab').textContent='➕';document.getElementById('add-mode-toast').style.display='none';
+  closeMPForm();
+}
+function selectMPIcon(el){
+  document.querySelectorAll('.icon-opt').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');
+}
+function saveMyPlace(){
+  const name=document.getElementById('mpf-name').value.trim()||'My Place';
+  const note=document.getElementById('mpf-note').value.trim();
+  const iconEl=document.querySelector('.icon-opt.selected');const icon=iconEl?iconEl.dataset.icon:'📍';
+  if(editingId!==null){
+    const idx=myPlaces.findIndex(p=>p.id===editingId);
+    if(idx>=0){myPlaces[idx]={...myPlaces[idx],name,note,icon};}
+    saveMPStorage();renderMyPlaceMarkers();closeMPForm();
+    editingId=null;addMode=false;
+    document.getElementById('add-fab').classList.remove('add-mode');
+    document.getElementById('add-fab').textContent='➕';
+    document.getElementById('add-mode-toast').style.display='none';
+    if(filter==='myplaces')renderList();return;
+  }
+  if(!pendingLatLng)return;
+  const place={id:Date.now(),name,note,icon,lat:pendingLatLng[0],lng:pendingLatLng[1]};
+  myPlaces.push(place);saveMPStorage();
+  addMode=false;document.getElementById('add-fab').classList.remove('add-mode');
+  document.getElementById('add-fab').textContent='➕';document.getElementById('add-mode-toast').style.display='none';
+  closeMPForm();renderMyPlaceMarkers();if(filter==='myplaces')renderList();
+}
+function renderMyPlaceMarkers(){
+  Object.values(mpMarkers).forEach(m=>map.removeLayer(m));mpMarkers={};
+  myPlaces.forEach(p=>{
+    const icn=L.divIcon({
+      html:`<div class="my-place-pin-wrap"><div class="my-place-pin">${p.icon}</div><div class="my-place-lbl">${p.name}</div></div>`,
+      className:'',iconAnchor:[17,17]
+    });
+    const m=L.marker([p.lat,p.lng],{icon:icn,zIndexOffset:900});
+    m.bindPopup(`<div class="pp-name">${p.icon} ${p.name}</div>${p.note?`<div class="pp-desc" style="margin-top:4px;font-size:12px">${p.note}</div>`:''}
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button onclick="editMyPlace(${p.id});if(map._popup)map.closePopup();" style="flex:1;background:#1a7eb7;color:#fff;border:none;border-radius:8px;padding:7px;font-size:12px;cursor:pointer">✏️ Edit</button>
+        <button onclick="deleteMyPlace(${p.id});" style="flex:1;background:#e53935;color:#fff;border:none;border-radius:8px;padding:7px;font-size:12px;cursor:pointer">🗑️ Delete</button>
+      </div>`,{maxWidth:200});
+    m.addTo(map);mpMarkers[p.id]=m;
+  });
+}
+function flyToMP(id){
+  closeSheet();const p=myPlaces.find(x=>x.id===id);if(!p)return;
+  setTimeout(()=>{map.flyTo([p.lat,p.lng],16,{duration:1.2});setTimeout(()=>{if(mpMarkers[id])mpMarkers[id].openPopup();},1300);},200);
+}
+function editMyPlace(id){
+  const p=myPlaces.find(x=>x.id===id);if(!p)return;
+  editingId=id;document.getElementById('mpf-name').value=p.name;document.getElementById('mpf-note').value=p.note||'';
+  document.querySelectorAll('.icon-opt').forEach(x=>x.classList.remove('selected'));
+  const el=document.querySelector(`.icon-opt[data-icon="${p.icon}"]`);if(el)el.classList.add('selected');
+  addMode=true;document.getElementById('add-fab').classList.add('add-mode');
+  document.getElementById('add-fab').textContent='✕';openMPForm();
+}
+function deleteMyPlace(id){
+  if(!confirm('Delete this saved place?'))return;
+  myPlaces=myPlaces.filter(p=>p.id!==id);saveMPStorage();
+  if(mpMarkers[id]){map.removeLayer(mpMarkers[id]);delete mpMarkers[id];}
+  if(map._popup)map.closePopup();
+  if(filter==='myplaces')renderList();
+}
+renderMyPlaceMarkers();
+
+</script>
+</body>
+</html>
