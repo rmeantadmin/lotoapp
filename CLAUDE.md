@@ -190,10 +190,14 @@ Editing `.github/workflows/update-prices.yml` requires a GitHub token with `work
 
 - **Yacht Haven (id:62)**: Coordinates (`lat:38.2020, lng:-92.6470`) are approximate — may need correction. Fuel types (87/93) are assumed — confirm with owner
 - **Spreadsheet**: `LOTO_Navigator_Directory.xlsx` exists as a companion file — not auto-synced to the HTML; manual updates needed if requested
-- **Missing fuel locations — RESOLVED (Jul 2026)**: All 7 LakeExpo-reported fuel docks are now in `locs[]`. Added new: Paradise Marina and Water Sports (id:76, MM 1), Lake Burger (id:77, MM 4, type:both), Rock Harbor Resort (id:78, MM 8), Premier Advantage Marina (id:79, MM 38). Converted restaurant→both with fuel: Coconuts (id:8), Franky & Louie's (id:13), Dog Days (id:15). Coordinates for Lake Burger (id:77) and Premier Advantage (id:79) are approximate — flagged in their fuel `note` for verification
+- **Missing fuel locations — RESOLVED (Jul 2026)**: All 7 LakeExpo-reported fuel docks are now in `locs[]`. Added new: Paradise Marina and Water Sports (id:76, MM 1), Lake Burger (id:77, MM 4, type:both), Rock Harbor Resort (id:78, MM 8), Premier Advantage Marina (id:79, MM 38). Converted restaurant→both with fuel: Coconuts (id:8), Franky & Louie's (id:13), Dog Days (id:15). All coordinates confirmed (Lake Burger and Premier Advantage coords provided by owner and verified)
 - **Stale price ranking**: locations without LakeExpo updates keep hardcoded prices with old `priceDate` (e.g. The Hatch, Aug 2025) and can wrongly rank cheapest in the Gas Price Panel
 - **prices.json duplicates**: `scripts/fetch_prices.py` emits most marinas twice, sometimes with conflicting prices (last one wins)
 - **Private repo**: `PRICES_JSON_URL` (raw.githubusercontent.com) returns 404 while the repo is private — the auto-update pipeline only works for the public once the repo is public
+
+### Data freshness decisions (Jul 2026)
+- **Hours pass**: Filled real gas-dock hours for 7 docks from online listings (Point Randall, Big Thunder Glencove, Montego Bay, Millstone, MarineMax, Surdyke's KK, Pirate's Point). 8 still on "Seasonal — call ahead" (no hours online) — tracked in `LOTO_Data_Gaps.xlsx`.
+- **Scraper expansion — decided AGAINST**: Researched whether individual marina sites publish current prices to add as scraper sources. They mostly show stale (2023) prices or none. Per-site scrapers would be fragile and risk showing wrong fuel prices. LakeExpo remains the single reliable live source. The 13 "call ahead" docks are best handled manually.
 
 ### Matching-logic invariants (added Jul 2026)
 - The 5-char prefix match in `fetchLakeExpoPrices()` requires `|p.mm - l.mm| <= 1`. Without it, "Pointe Oasis" (MM 13) steals "Point Randall" (MM 2) prices, "Surdyke's KK" (MM 26) overwrites Surdyke's Port 20 (MM 20), and "Premier Advantage" (MM 38) feeds Premier 54 (MM 20).
