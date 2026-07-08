@@ -475,7 +475,7 @@ const locs = [
     fuel:null
   },
   {
-    id:8, name:"Coconuts Caribbean Bar & Grill", type:"restaurant", mm:7, cove:"Gravois Arm (MM 7)",
+    id:8, name:"Coconuts Caribbean Bar & Grill", type:"both", mm:7, cove:"Gravois Arm (MM 7)",
     lat:38.2909, lng:-92.7988, icon:"🥥",
     phone:"(573) 372-6500",
     website:"https://www.coconutsatthelake.com/",
@@ -485,7 +485,7 @@ const locs = [
     highlights:["Coconut Shrimp","Jerk Chicken Plate","Painkiller Cocktail"],
     menuUrl:"https://www.coconutsatthelake.com/menu",
     gfOptions:["Check with your server for gluten-free options"],
-    fuel:null
+    fuel:{types:["87 Regular"],prices:{87:"4.89"},priceDate:"Jul 2026",hours:"Seasonal Apr–Oct",pricesUrl:null,note:"Gas dock on the Gravois Arm. Prices auto-update from LakeExpo."}
   },
   {
     id:9, name:"Toad Cove Marina", type:"fuel", mm:7, cove:"Toad Cove (MM 7)",
@@ -545,7 +545,7 @@ const locs = [
 
   // ── SUNRISE BEACH (MM 10) ────────────────────────
   {
-    id:13, name:"Franky & Louie's", type:"restaurant", mm:10, cove:"Sunrise Beach (MM 10)",
+    id:13, name:"Franky & Louie's", type:"both", mm:10, cove:"Sunrise Beach (MM 10)",
     lat:38.1594313, lng:-92.7565172, icon:"🌴",
     phone:"(573) 374-5750",
     website:"https://www.frankyandlouies.com/",
@@ -555,7 +555,7 @@ const locs = [
     highlights:["Mahi Mahi (grilled or blackened)","Lobster Mac & Cheese","Grouper Sandwich"],
     menuUrl:null,
     gfOptions:["Check with your server for gluten-free options"],
-    fuel:null
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:"4.59",91:"5.29"},priceDate:"Jul 2026",hours:"Seasonal",pricesUrl:null,note:"Dock-and-dine fuel on Sunrise Beach. Prices auto-update from LakeExpo."}
   },
 
   // ── CRABTREE COVE (MM 17.5) ──────────────────────
@@ -575,7 +575,7 @@ const locs = [
 
   // ── MM 19 AREA ────────────────────────────────────
   {
-    id:15, name:"Dog Days Bar & Grill", type:"restaurant", mm:19, cove:"Main Channel (MM 19)",
+    id:15, name:"Dog Days Bar & Grill", type:"both", mm:19, cove:"Main Channel (MM 19)",
     lat:38.1399404, lng:-92.6490004, icon:"🐶",
     phone:"(573) 348-9797",
     website:"https://dogdays.ws/",
@@ -586,7 +586,7 @@ const locs = [
     tags:["late"],
     menuUrl:"https://dogdays.ws/menu/",
     gfOptions:["Full gluten-free menu available — ask server for GF menu","Dedicated fryer for GF items","GF buns available","Popular GF picks: nachos, ahi tuna bowl, wings, fries"],
-    fuel:null
+    fuel:{types:["87 Regular"],prices:{87:"4.50"},priceDate:"Jul 2026",hours:"Seasonal May–Sep",pricesUrl:null,note:"Fuel dock at Dog Days (Bombay Boat Rentals). Prices auto-update from LakeExpo."}
   },
   {
     id:26, name:"Kelly's Port", type:"fuel", mm:19, cove:"Main Channel (MM 19)",
@@ -1412,6 +1412,56 @@ const locs = [
     hours:"Seasonal — call ahead", seasonal:true,
     highlights:null, tags:null, menuUrl:null, gfOptions:null,
     fuel:{types:["87 Regular"],prices:{87:null,89:null,91:null,93:null,diesel:null},priceDate:null,hours:null,note:null},
+    cstore:null, xtow:null
+  },
+
+  // ── ADDED FROM LAKEEXPO GAS REPORT (Jul 2026) ──────
+  {
+    id:76, name:"Paradise Marina and Water Sports", type:"fuel", mm:1, cove:"Bagnell Dam (MM 1)",
+    lat:38.2011955, lng:-92.6310967, icon:"⛽",
+    phone:"(573) 745-0700",
+    website:"https://www.paradisemarinaandwatersports.com/",
+    address:"1100 Bagnell Dam Blvd, Lake Ozark, MO 65049",
+    desc:"Watersports rental marina next to Bagnell Dam — boats, waverunners, parasailing, and a gas dock. NOT the same as Paradise Tropical (MM 24).",
+    hours:"Seasonal May–Oct · 9am–6pm", seasonal:true,
+    highlights:null, tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular"],prices:{87:"4.99"},priceDate:"Jul 2026",hours:"Seasonal May–Oct",pricesUrl:null,note:"Watersports rentals on site. Prices auto-update from LakeExpo."},
+    cstore:null, xtow:null
+  },
+  {
+    id:77, name:"Lake Burger", type:"both", mm:4, cove:"Gravois Arm (MM 4)",
+    lat:38.2720, lng:-92.7700, icon:"🍔",
+    phone:"(573) 207-4422",
+    website:"https://www.lakeburger.com/",
+    address:"29475 Mill Creek Marina Rd, Gravois Mills, MO 65037",
+    desc:"Bar & grill and gas dock on the Gravois Arm, known for burgers. Dock-and-dine with fuel on site.",
+    hours:"Seasonal Mar–Dec · 11am–1am", seasonal:true,
+    highlights:["Burgers","Dock-and-dine","Gas dock on site"], tags:["late"], menuUrl:null, gfOptions:["Check with your server for gluten-free options"],
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:"4.99",91:"5.99"},priceDate:"Jul 2026",hours:"Seasonal Mar–Dec",pricesUrl:null,note:"Coordinates approximate (Gravois Arm) — verify. Prices auto-update from LakeExpo."},
+    cstore:null, xtow:null
+  },
+  {
+    id:78, name:"Rock Harbor Resort", type:"fuel", mm:8, cove:"Main Channel (MM 8)",
+    lat:38.1893410, lng:-92.7759148, icon:"⛽",
+    phone:"(573) 374-5586",
+    website:"https://www.rockharborresort.com/",
+    address:"973 Rock Harbor Rd, Sunrise Beach, MO 65079",
+    desc:"Family-owned lakefront resort with a gas dock in a quiet cove off the main channel near MM 8. Lodging and boat access.",
+    hours:"Seasonal — call ahead", seasonal:true,
+    highlights:null, tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular"],prices:{87:"4.60"},priceDate:"Jul 2026",hours:"Seasonal — call ahead",pricesUrl:null,note:"Coordinates approximate (street-level) — verify. Prices auto-update from LakeExpo."},
+    cstore:null, xtow:null
+  },
+  {
+    id:79, name:"Premier Advantage Marina", type:"fuel", mm:38, cove:"Main Channel (MM 38)",
+    lat:38.1705, lng:-92.7950, icon:"⛽",
+    phone:null,
+    website:"https://premieradvantagemarine.com/",
+    address:"27 Lighthouse Marina Rd, Sunrise Beach, MO 65079",
+    desc:"Boat dealer and full-service marina at MM 38.8 (former Lighthouse & Silver Sands Marina), with a gas dock.",
+    hours:"Seasonal — call ahead", seasonal:true,
+    highlights:null, tags:null, menuUrl:null, gfOptions:null,
+    fuel:{types:["87 Regular","91 Premium"],prices:{87:"4.63",91:"5.14"},priceDate:"Jul 2026",hours:"Seasonal — call ahead",pricesUrl:null,note:"Coordinates approximate (near MM 38) — verify. Prices auto-update from LakeExpo."},
     cstore:null, xtow:null
   }
 

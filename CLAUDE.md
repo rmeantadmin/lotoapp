@@ -142,7 +142,7 @@ Pin labels (name text under emoji) are zoom-gated: only visible at zoom ≥ 13 t
 
 ## Conventions & Gotchas
 
-- **Next available ID: 76** (last used was 75 for Hiawatha Beach)
+- **Next available ID: 80** (last used was 79 for Premier Advantage Marina)
 - **Always read the file before editing** — the Edit tool requires a prior read of the section being changed
 - **Edit tool "Found 2 matches" error**: If `old_string` matches more than once, add more surrounding context (the full entry block with `id:XX`) to make it unique
 - **Prices are strings**, not numbers: `prices:{87:"3.79"}` not `prices:{87:3.79}`
@@ -190,7 +190,7 @@ Editing `.github/workflows/update-prices.yml` requires a GitHub token with `work
 
 - **Yacht Haven (id:62)**: Coordinates (`lat:38.2020, lng:-92.6470`) are approximate — may need correction. Fuel types (87/93) are assumed — confirm with owner
 - **Spreadsheet**: `LOTO_Navigator_Directory.xlsx` exists as a companion file — not auto-synced to the HTML; manual updates needed if requested
-- **Missing fuel locations**: LakeExpo reports prices for these but they can't display: Rock Harbour Resort (MM 8), Lake Burger (MM 4), Premier Advantage Marina (MM 38), Paradise Marina & Water Sports (MM 1) — not in `locs[]`; Franky & Louie's (id:13), Dog Days (id:15), Coconuts (id:8) — in `locs[]` but `fuel:null`
+- **Missing fuel locations — RESOLVED (Jul 2026)**: All 7 LakeExpo-reported fuel docks are now in `locs[]`. Added new: Paradise Marina and Water Sports (id:76, MM 1), Lake Burger (id:77, MM 4, type:both), Rock Harbor Resort (id:78, MM 8), Premier Advantage Marina (id:79, MM 38). Converted restaurant→both with fuel: Coconuts (id:8), Franky & Louie's (id:13), Dog Days (id:15). Coordinates for Lake Burger (id:77) and Premier Advantage (id:79) are approximate — flagged in their fuel `note` for verification
 - **Stale price ranking**: locations without LakeExpo updates keep hardcoded prices with old `priceDate` (e.g. The Hatch, Aug 2025) and can wrongly rank cheapest in the Gas Price Panel
 - **prices.json duplicates**: `scripts/fetch_prices.py` emits most marinas twice, sometimes with conflicting prices (last one wins)
 - **Private repo**: `PRICES_JSON_URL` (raw.githubusercontent.com) returns 404 while the repo is private — the auto-update pipeline only works for the public once the repo is public
