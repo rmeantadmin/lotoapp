@@ -833,7 +833,7 @@ const locs = [
     id:33, name:"Coffman Marina", type:"fuel", mm:51, cove:"Upper Lake (MM 51)",
     lat:38.18810, lng:-92.96860, icon:"⛽",
     phone:"(573) 345-3895",
-    website:null,
+    website:"https://www.facebook.com/coffman.marina/",
     address:null,
     desc:"Family-owned marina on the lake since 1967. Reliable full-service fuel dock in the upper lake stretch. Boat repair and parts on site.",
     hours:"Wed–Mon 8am–5pm · Closed Tue",seasonal:false,
@@ -2051,7 +2051,7 @@ async function fetchLakeExpoPrices(){
       'redheadyacht':'redhead',    // Redhead Lakeside → Redhead Yacht Club
       'ggmarina':'gg',             // G&G Marina
       'shortypants':'shorty',      // Shorty Pants
-      'paradis':'paradise',        // Paradise Tropical
+      'paradiserestaurant':'paradise', // Paradise Restaurant & Bar → Paradise Tropical (NOT Paradise Marina MM 1)
       'formulaboat':'formula',     // Formula Boats
       'pointrandall':'pointrandall', // Point Randall
       'ozarkyacht':'ozarkyacht',   // Ozark Yacht Club
@@ -2068,7 +2068,6 @@ async function fetchLakeExpoPrices(){
       'surdykeport20':'surdyke',   // Surdyke's Port 20
     };
 
-    const dateStr=pubDate?new Date(pubDate).toLocaleDateString('en-US',{month:'short',year:'numeric'}):'';
     let updated=0;
     parsed.forEach(p=>{
       const pName=p.name.toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -2077,8 +2076,10 @@ async function fetchLakeExpoPrices(){
         const lName=l.name.toLowerCase().replace(/[^a-z0-9]/g,'');
         // Direct match
         if(lName.includes(pName)||pName.includes(lName)) return true;
-        // Prefix match (first 5+ chars)
-        if(pName.length>4&&lName.length>4&&pName.substring(0,5)===lName.substring(0,5)) return true;
+        // Prefix match (first 5+ chars) — mile markers must be close, otherwise
+        // "Pointe Oasis" (MM 13) steals "Point Randall" (MM 2) prices, etc.
+        if(pName.length>4&&lName.length>4&&pName.substring(0,5)===lName.substring(0,5)&&
+           p.mm!=null&&l.mm!=null&&Math.abs(p.mm-l.mm)<=1) return true;
         // Word overlap: check if any significant word (4+ chars) matches
         const pWords=pName.match(/.{4,}/g)||[];
         const lWords=lName.match(/.{4,}/g)||[];

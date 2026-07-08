@@ -46,10 +46,13 @@ No build step. No npm. No server. Just open the file.
 See `HANDOFF.md` for the full list in plain English.
 
 Quick summary:
-- **Coffman Marina (id:33)** — needs a website URL (owner was going to provide)
 - **Yacht Haven (id:62)** — coordinates are approximate; fuel types (87/93) unconfirmed
-- **Gas price staleness** — LakeExpo last published May 23-24, 2026; need to confirm if newer reports exist and if the fetcher is picking them up
-- **Paradise Tropical name match** — LakeExpo calls it "Paradise Restaurant & Bar"; confirm in console that it matches correctly
+- **Missing fuel locations** — LakeExpo reports gas prices for locations not in the app (or in the app without fuel objects): Rock Harbour Resort (MM 8), Lake Burger (MM 4), Premier Advantage Marina (MM 38), Paradise Marina & Water Sports (MM 1), Franky & Louie's (MM 10), Dog Days (MM 19), Coconuts (MM 7)
+- **Stale hardcoded prices** — locations LakeExpo doesn't report keep old baked-in prices (e.g. The Hatch shows Aug 2025) and can wrongly rank as "cheapest"; consider demoting or flagging prices older than ~30 days
+- **prices.json duplicates** — `scripts/fetch_prices.py` writes most marinas twice (sometimes with different prices); harmless but worth fixing
+- **Private repo blocks price fetch** — `prices.json` is fetched from raw.githubusercontent.com, which 404s while the repo is private; make the repo public (also enables free GitHub Pages hosting)
+
+Resolved Jul 2026: Coffman Marina website added (Facebook page); Paradise Tropical matching confirmed and hardened; fatal `dateStr` redeclaration syntax error fixed (app wouldn't load at all); prefix-match now requires mile-marker proximity (Point Randall, Surdyke's Port 20, and Premier 54 were getting other marinas' prices).
 
 ---
 

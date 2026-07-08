@@ -188,6 +188,14 @@ Editing `.github/workflows/update-prices.yml` requires a GitHub token with `work
 
 ## Pending / Known Issues
 
-- **Coffman Marina (id:33)**: No website — owner was going to find it
 - **Yacht Haven (id:62)**: Coordinates (`lat:38.2020, lng:-92.6470`) are approximate — may need correction. Fuel types (87/93) are assumed — confirm with owner
 - **Spreadsheet**: `LOTO_Navigator_Directory.xlsx` exists as a companion file — not auto-synced to the HTML; manual updates needed if requested
+- **Missing fuel locations**: LakeExpo reports prices for these but they can't display: Rock Harbour Resort (MM 8), Lake Burger (MM 4), Premier Advantage Marina (MM 38), Paradise Marina & Water Sports (MM 1) — not in `locs[]`; Franky & Louie's (id:13), Dog Days (id:15), Coconuts (id:8) — in `locs[]` but `fuel:null`
+- **Stale price ranking**: locations without LakeExpo updates keep hardcoded prices with old `priceDate` (e.g. The Hatch, Aug 2025) and can wrongly rank cheapest in the Gas Price Panel
+- **prices.json duplicates**: `scripts/fetch_prices.py` emits most marinas twice, sometimes with conflicting prices (last one wins)
+- **Private repo**: `PRICES_JSON_URL` (raw.githubusercontent.com) returns 404 while the repo is private — the auto-update pipeline only works for the public once the repo is public
+
+### Matching-logic invariants (added Jul 2026)
+- The 5-char prefix match in `fetchLakeExpoPrices()` requires `|p.mm - l.mm| <= 1`. Without it, "Pointe Oasis" (MM 13) steals "Point Randall" (MM 2) prices, "Surdyke's KK" (MM 26) overwrites Surdyke's Port 20 (MM 20), and "Premier Advantage" (MM 38) feeds Premier 54 (MM 20).
+- Alias key is `'paradiserestaurant'` (not `'paradis'`) so "Paradise Marina and Water Sports" (MM 1) can't match Paradise Tropical (MM 24).
+- Don't redeclare `dateStr` inside `fetchLakeExpoPrices()` — it's declared once at the top with `let`; a duplicate `const` declaration is a fatal syntax error that kills the entire app (this happened once).
