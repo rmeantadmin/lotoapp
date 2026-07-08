@@ -154,25 +154,40 @@ Pin labels (name text under emoji) are zoom-gated: only visible at zoom ≥ 13 t
 
 ---
 
+## Gas Price Auto-Update System
+
+Prices are updated automatically — no manual edits to `loto-navigator.html` needed.
+
+### How it works
+1. **GitHub Action** (`.github/workflows/update-prices.yml`) runs every day at 9am CT
+2. It runs `scripts/fetch_prices.py`, which fetches the latest LakeExpo Boat Gas Report and writes `prices.json` to the repo
+3. **On every page load**, the app fetches `prices.json` from GitHub and updates the Gas Price Panel in-memory
+4. If `prices.json` is unavailable or stale (>8 days), the app falls back to direct CORS proxy fetching (often blocked by LakeExpo — unreliable)
+
+### Manual trigger
+Go to **github.com/rmeantadmin/lotoapp** → Actions tab → **Update Gas Prices** → **Run workflow**
+
+### prices.json format
+```json
+{
+  "updated": "2026-07-07T14:00:00Z",
+  "articleUrl": "https://www.lakeexpo.com/...",
+  "locations": [
+    { "mm": 1, "name": "Bergers Marina", "prices": { "87": "4.39" } }
+  ]
+}
+```
+
+### Name matching
+`fetchLakeExpoPrices()` in the HTML matches LakeExpo names to `locs[]` entries by name similarity + aliases. The `nameAliases` map in that function handles known name mismatches. If a location stops updating, check the alias map.
+
+### Workflow file caveat
+Editing `.github/workflows/update-prices.yml` requires a GitHub token with `workflow` scope. If a push is rejected with "workflow scope" error, edit the file directly on github.com using the web editor.
+
+---
+
 ## Pending / Known Issues
 
 - **Coffman Marina (id:33)**: No website — owner was going to find it
 - **Yacht Haven (id:62)**: Coordinates (`lat:38.2020, lng:-92.6470`) are approximate — may need correction. Fuel types (87/93) are assumed — confirm with owner
-- **Fuel prices**: Most docks show `null` prices — owner provides these via screenshots as they update. See `pricesUrl` fields for weekly reference links.
-- **Spreadsheet**: `LOTO_Navigator_Directory.xlsx` exists as a companion file (built with openpyxl) — not auto-synced to the HTML; manual updates needed if requested
-
----
-
-## Weekly Gas Price Update Workflow
-
-When updating gas prices, edit the relevant location's `fuel.prices` object and update `fuel.priceDate` to the current month/year. Example:
-
-```javascript
-// Before
-prices:{87:null,93:null}, priceDate:null
-
-// After
-prices:{87:"3.79",93:"4.29"}, priceDate:"Mar 2026"
-```
-
-Check `pricesUrl` (if set) for the current price at that marina's website.
+- **Spreadsheet**: `LOTO_Navigator_Directory.xlsx` exists as a companion file — not auto-synced to the HTML; manual updates needed if requested

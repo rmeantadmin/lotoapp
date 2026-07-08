@@ -53,24 +53,7 @@ Here are the known open items, from most to least important:
 
 ---
 
-### 1. Verify the gas price auto-fetch is working
-
-**What it does:** Every time someone opens the app, it automatically fetches the latest gas prices from LakeExpo.com and displays them. This saves having to manually update prices.
-
-**The issue:** When we last tested, the most recent LakeExpo gas report was from May 23–24, 2026 — about 6 weeks ago. LakeExpo usually publishes every weekend during boating season. It's unclear if they stopped publishing or if the app just isn't finding newer articles.
-
-**How to check:**
-1. Open the app in Chrome, press F12, go to Console
-2. Look for the `[LOTO] LakeExpo prices: parsed...` line
-3. Also check the Gas Price Panel — it should show a source line like "Prices from LakeExpo.com · May 2026"
-4. Then go to **https://www.lakeexpo.com/boating/boat_gas_report/** manually and see if there are newer articles (July 2026, etc.)
-
-**If newer articles exist but the app isn't picking them up**, tell Claude Code:
-> "The LakeExpo gas price fetcher isn't finding the most recent articles. The latest article I see on the site is [date]. Can you look at the fetchLakeExpoPrices function and figure out why it's missing newer articles?"
-
----
-
-### 2. Confirm "Paradise Tropical" is matching correctly
+### 1. Confirm "Paradise Tropical" is matching correctly
 
 **What it is:** Paradise Restaurant & Bar at mile marker 24 sells 87 Ethanol-Free fuel. The app tries to match LakeExpo's listing ("Paradise Restaurant & Bar") to our entry ("Paradise Tropical Restaurant & Bar").
 
@@ -126,17 +109,32 @@ The companion Excel file (`LOTO_Navigator_Directory.xlsx`) also has no password.
 
 ---
 
-## Getting Set Up with GitHub (Recommended)
+## How Gas Prices Work (Nothing to Do — It's Automatic)
 
-GitHub is a cloud backup for code. Your brother should have already:
-1. Created a GitHub account (free at **https://github.com**)
-2. Created a private repository called something like `loto-navigator`
-3. Invited you as a collaborator — you'll get an email to accept
+Gas prices update themselves every day at 9am automatically. Here's how:
+
+- A **GitHub Action** (a scheduled script that runs in the cloud) fetches the latest LakeExpo Boat Gas Report every morning
+- It saves the prices to a file called `prices.json` in the repository
+- When anyone opens the app, it reads that file and shows the current prices
+
+You can also trigger it manually if you want fresh prices right now:
+1. Go to **github.com/rmeantadmin/lotoapp**
+2. Click the **Actions** tab
+3. Click **Update Gas Prices** on the left
+4. Click **Run workflow** → **Run workflow**
+
+You do NOT need to manually update any prices.
+
+---
+
+## Getting Set Up with GitHub
+
+The project is already on GitHub at **github.com/rmeantadmin/lotoapp** (private). Your brother has invited you as a collaborator — you'll get an email to accept.
 
 **Once invited:**
 1. Download **GitHub Desktop** (https://desktop.github.com)
 2. Sign in with your GitHub account
-3. Click File → Clone Repository → find `loto-navigator`
+3. Click File → Clone Repository → find `lotoapp`
 4. Choose where to save it on your computer
 5. Open Claude Code and point it at that folder
 
