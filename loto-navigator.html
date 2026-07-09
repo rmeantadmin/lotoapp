@@ -1620,6 +1620,7 @@ const mmChannelPts=[
   {mm:25, lat:38.1344, lng:-92.7343},
   {mm:26, lat:38.1234, lng:-92.7228},  // Osage Beach / Grand Glaize
   {mm:27, lat:38.1145, lng:-92.7086},
+  {lat:38.108611, lng:-92.704250, guide:true}, // guide: bend between MM27–28
   {mm:28, lat:38.1022, lng:-92.7093},
   {mm:29, lat:38.1026, lng:-92.7275},
   {mm:30, lat:38.0967, lng:-92.7441},
@@ -1631,6 +1632,7 @@ const mmChannelPts=[
   {mm:36, lat:38.1403, lng:-92.8082},
   {mm:37, lat:38.1531, lng:-92.8001},
   {mm:38, lat:38.1662, lng:-92.7978},
+  {lat:38.168090, lng:-92.803870, guide:true}, // guide: bend between MM38–39
   {mm:39, lat:38.1617, lng:-92.8123},
   {mm:40, lat:38.1530, lng:-92.8258},
   {mm:41, lat:38.1463, lng:-92.8416},
@@ -1642,22 +1644,30 @@ const mmChannelPts=[
   {mm:47, lat:38.1781, lng:-92.9328},
   {mm:48, lat:38.1684, lng:-92.9441},
   {mm:49, lat:38.1669, lng:-92.9625},
+  {lat:38.171264, lng:-92.972554, guide:true}, // guide: bend between MM49–50
   {mm:50, lat:38.1763, lng:-92.9719},  // Upper lake
   {mm:51, lat:38.1893, lng:-92.9639},
   {mm:52, lat:38.2021, lng:-92.9563},
   {mm:53, lat:38.2099, lng:-92.9410},
+  {lat:38.213125, lng:-92.935355, guide:true}, // guide: bend between MM53–54
   {mm:54, lat:38.2208, lng:-92.9337},
+  {lat:38.227960, lng:-92.938239, guide:true}, // guide: bend between MM54–55
   {mm:55, lat:38.2304, lng:-92.9448},
+  {lat:38.230882, lng:-92.956154, guide:true}, // guide: bend between MM55–56
   {mm:56, lat:38.2273, lng:-92.9638},
   {mm:57, lat:38.2144, lng:-92.9718},
   {mm:58, lat:38.2012, lng:-92.9791},
   {mm:59, lat:38.1895, lng:-92.9898},
   {mm:60, lat:38.1878, lng:-93.0069},
   {mm:61, lat:38.1978, lng:-93.0193},
+  {lat:38.204454, lng:-93.018087, guide:true}, // guide: bend between MM61–62
   {mm:62, lat:38.2087, lng:-93.0106},
   {mm:63, lat:38.2120, lng:-92.9928},
+  {lat:38.214031, lng:-92.986015, guide:true}, // guide: bend between MM63–64
+  {lat:38.216259, lng:-92.984718, guide:true}, // guide: bend between MM63–64
   {mm:64, lat:38.2208, lng:-92.9875},
   {mm:65, lat:38.2238, lng:-93.0050},
+  {lat:38.229678, lng:-93.010210, guide:true}, // guide: bend between MM65–66
   {mm:66, lat:38.2379, lng:-93.0122},
   {mm:67, lat:38.2504, lng:-93.0237},
   {mm:68, lat:38.2598, lng:-93.0376},
@@ -2411,7 +2421,7 @@ function renderMMMarkers(){
 
   // Main channel: zoom 9-14 every 5 MMs, zoom 15+ every 1 MM
   const step=zoom<15?5:1;
-  mmChannelPts.filter(d=>d.mm%step===0).forEach(d=>{
+  mmChannelPts.filter(d=>d.mm!=null&&d.mm%step===0).forEach(d=>{
     const m=L.marker([d.lat,d.lng],{
       icon:L.divIcon({html:`<div class="mm-channel-label">MM ${d.mm}</div>`,className:'',iconAnchor:[20,10]}),
       interactive:false,zIndexOffset:-200
@@ -2446,12 +2456,14 @@ function nearestChannelMM(lat,lng){
   // Check main channel
   let bestMC=null, bestMCdist=Infinity;
   mmChannelPts.forEach(p=>{
+    if(p.guide)return; // guide points shape the channel line only — not real mile markers
     const d=haversine(lat,lng,p.lat,p.lng);
     if(d<bestMCdist){bestMCdist=d;bestMC=p;}
   });
   // Check arms
   let bestArm=null, bestArmDist=Infinity;
   armChannelPts.forEach(p=>{
+    if(p.guide)return; // guide points shape the arm line only — not real mile markers
     const d=haversine(lat,lng,p.lat,p.lng);
     if(d<bestArmDist){bestArmDist=d;bestArm=p;}
   });
