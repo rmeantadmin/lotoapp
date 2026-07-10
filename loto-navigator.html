@@ -2230,12 +2230,34 @@ document.querySelectorAll('.gpp-tab').forEach(btn=>{
   });
 });
 
+// A gas price is only "current" if its month is recent. priceDate is month+year
+// granularity (e.g. "Jul 2026"), so give benefit of the doubt: treat the LAST day of
+// that month as the newest the price could be, and call it stale past STALE_PRICE_DAYS.
+const STALE_PRICE_DAYS=14;
+function priceMonthCutoff(dateStr){
+  if(!dateStr) return null;
+  const s=dateStr.toLowerCase();
+  const ym=s.match(/\b(20\d{2})\b/);
+  if(!ym) return null;
+  const year=+ym[1];
+  const mos={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+  let mo=null;
+  for(const k in mos){ if(s.includes(k)){ mo=mos[k]; break; } }
+  // last day of that month (or end of year if no month name found)
+  return mo!=null ? new Date(year,mo+1,0,23,59,59).getTime() : new Date(year,11,31,23,59,59).getTime();
+}
+function isStalePrice(dateStr){
+  const cutoff=priceMonthCutoff(dateStr);
+  if(cutoff===null) return true; // unverifiable date → don't let it rank
+  return (Date.now()-cutoff) > STALE_PRICE_DAYS*86400000;
+}
+
 function renderGasPrices(){
   const gradeKey=gppGrade; // '87','91','93','diesel'
   const list=document.getElementById('gpp-list');
 
   // Collect all docks that carry this grade
-  const withPrice=[], noPrice=[];
+  const withPrice=[], stalePrice=[], noPrice=[];
   locs.forEach(l=>{
     if(!l.fuel) return;
     const types=(l.fuel.types||[]).map(t=>t.toLowerCase());
@@ -2250,14 +2272,18 @@ function renderGasPrices(){
     // Find the matching price key
     const priceVal=l.fuel.prices[gradeKey];
     const entry={l, price:priceVal?parseFloat(priceVal):null, date:l.fuel.priceDate};
-    if(entry.price!==null && !isNaN(entry.price)) withPrice.push(entry);
-    else noPrice.push(entry);
+    if(entry.price!==null && !isNaN(entry.price)){
+      // Only rank a price if it's current; stale prices drop to "Call Ahead" with last-known value
+      if(isStalePrice(entry.date)) stalePrice.push(entry);
+      else withPrice.push(entry);
+    } else noPrice.push(entry);
   });
 
   withPrice.sort((a,b)=>a.price-b.price);
+  stalePrice.sort((a,b)=>a.price-b.price);
 
   let html='';
-  if(withPrice.length===0 && noPrice.length===0){
+  if(withPrice.length===0 && stalePrice.length===0 && noPrice.length===0){
     html='<div class="gpp-section-label">No fuel docks found for this grade</div>';
   }
 
@@ -2281,8 +2307,24 @@ function renderGasPrices(){
     });
   }
 
-  if(noPrice.length>0){
-    html+=`<div class="gpp-section-label">Price Unknown — Call Ahead (${noPrice.length})</div>`;
+  if(stalePrice.length>0 || noPrice.length>0){
+    const total=stalePrice.length+noPrice.length;
+    html+=`<div class="gpp-section-label">Not Current — Call Ahead (${total})</div>`;
+    // Stale first — they at least have a last-known price to show
+    stalePrice.forEach(entry=>{
+      const mmStr=entry.l.mm?`MM ${entry.l.mm} · `:'';
+      html+=`<div class="gpp-row" data-id="${entry.l.id}">
+        <span class="gpp-rank" style="color:rgba(255,255,255,.25)">—</span>
+        <div class="gpp-info">
+          <div class="gpp-name">${entry.l.name}</div>
+          <div class="gpp-sub">${mmStr}${entry.l.cove||''}</div>
+        </div>
+        <div class="gpp-price">
+          <div class="gpp-no-price">Call ahead</div>
+          <div class="gpp-price-gal">last known $${entry.price.toFixed(2)}${entry.date?' · '+entry.date:''}</div>
+        </div>
+      </div>`;
+    });
     noPrice.forEach(entry=>{
       const mmStr=entry.l.mm?`MM ${entry.l.mm} · `:'';
       html+=`<div class="gpp-row" data-id="${entry.l.id}">
