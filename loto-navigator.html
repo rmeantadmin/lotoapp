@@ -2486,6 +2486,7 @@ function renderMMMarkers(){
   // Arm labels: only at zoom 13+ to avoid clutter
   if(zoom>=13){
     armChannelPts.forEach(d=>{
+      if(d.guide||!Number.isInteger(d.mm))return; // guide/fractional points shape the line only — no label
       const m=L.marker([d.lat,d.lng],{
         icon:L.divIcon({html:`<div class="mm-arm-label">${d.arm} ${d.mm}</div>`,className:'',iconAnchor:[18,10]}),
         interactive:false,zIndexOffset:-190
