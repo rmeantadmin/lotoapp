@@ -140,6 +140,15 @@ Pin labels (name text under emoji) are zoom-gated: only visible at zoom ≥ 13 t
 
 ---
 
+## Issue Tracking
+
+All known bugs, missing data, and pending work are in **`TRACKER.md`**. When making any change:
+- If it fixes a known issue → check the box `[x]` and add the date
+- If you find a new problem → add it to the Open Issues list
+- Add a brief entry to the Changelog section at the bottom
+
+---
+
 ## Conventions & Gotchas
 
 - **Next available ID: 80** (last used was 79 for Premier Advantage Marina)
