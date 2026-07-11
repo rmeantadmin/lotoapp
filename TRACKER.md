@@ -25,6 +25,9 @@
 - [ ] **Stale hardcoded prices** — locations not covered by LakeExpo (e.g. The Hatch at Miller's Landing) show old baked-in prices and can incorrectly rank as "cheapest" in the Gas Price Panel. Should be demoted to "Call Ahead" if priceDate is older than ~60 days.
 - [ ] **prices.json duplicates** — `scripts/fetch_prices.py` sometimes writes the same marina twice with different prices. Harmless but should be fixed by deduplicating on name+mm before writing.
 
+### Popups
+- [ ] **Generic "Check with your server" GF entries** — ~30 locations have unconfirmed placeholder `gfOptions:["Check with your server for gluten-free options"]`. Should be set to `null` since no real info is confirmed. Only keep entries with specific verified GF details.
+
 ### General
 - [ ] **Spreadsheet not synced** — `LOTO_Navigator_Directory.xlsx` and `LOTO_Data_Gaps.xlsx` are manually maintained and not auto-synced to the HTML. Update manually if requested.
 
@@ -45,6 +48,10 @@
 ---
 
 ## Changelog
+
+### Jul 10 2026 (session 2)
+- Fixed popup showing "Gluten-Free Options" label with nothing under it for fuel-only locations
+- Removed generic unconfirmed "No options listed — ask your server" GF fallback; GF section now hidden unless confirmed info exists
 
 ### Jul 10 2026
 - Gas prices auto-updated by GitHub Action (daily 9am CT)

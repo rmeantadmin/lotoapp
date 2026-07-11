@@ -1924,20 +1924,17 @@ function openDetail(id){
       <div class="highlights-row">${chips}</div>${btnsRow}`;
   }
 
-  // ── GF options (non-salad) ────────────────────────
+  // ── GF options — only shown if confirmed info exists ──
   let gfHtml='';
-  if(l.type!=='fuel'&&l.type!=='both'||l.highlights){
-    gfHtml=`<div class="section-label" style="margin-top:14px">Gluten-Free Options</div><div class="gf-section">`;
-    if(l.gfOptions&&l.gfOptions.length){
-      gfHtml+=l.gfOptions.map(o=>`<div class="gf-item">${o}</div>`).join('');
-    } else if(l.type!=='fuel'){
-      gfHtml+=`<div class="gf-none">No options listed online — ask your server, options may be available</div>`;
-    }
-    // GF menu button for locations that don't have highlights section (fuel+food combos)
-    if(l.gfMenuUrl&&!l.highlights){
-      gfHtml+=`<div class="menu-btns-row" style="margin-top:8px"><a class="gf-menu-btn" href="${l.gfMenuUrl}" target="_blank">🌾 GF Menu</a></div>`;
-    }
-    gfHtml+=`</div>`;
+  let gfContent='';
+  if(l.gfOptions&&l.gfOptions.length){
+    gfContent+=l.gfOptions.map(o=>`<div class="gf-item">${o}</div>`).join('');
+  }
+  if(l.gfMenuUrl){
+    gfContent+=`<div class="menu-btns-row" style="margin-top:8px"><a class="gf-menu-btn" href="${l.gfMenuUrl}" target="_blank">🌾 GF Menu</a></div>`;
+  }
+  if(gfContent){
+    gfHtml=`<div class="section-label" style="margin-top:14px">Gluten-Free Options</div><div class="gf-section">${gfContent}</div>`;
   }
 
   // ── fuel section ──────────────────────────────────
