@@ -49,6 +49,11 @@
 
 ## Changelog
 
+### Jul 10 2026 (session 3)
+- Corrected coordinates for Hiawatha Beach (id:75): was 38.2520, -93.0240 → now 38.262853, -93.027698
+- Corrected coordinates for Pirate's Point Marina (id:60): was 38.127, -92.809 → now 38.125430, -92.799701
+- Corrected coordinates for Lucky's Gas Dock (id:56): was 38.0893, -92.8413 → now 38.0503048, -92.8221638
+
 ### Jul 10 2026 (session 2)
 - Fixed popup showing "Gluten-Free Options" label with nothing under it for fuel-only locations
 - Removed generic unconfirmed "No options listed — ask your server" GF fallback; GF section now hidden unless confirmed info exists
