@@ -1,6 +1,6 @@
 {
-  "updated": "2026-07-10T16:26:18.273010+00:00",
-  "articleUrl": "https://www.lakeexpo.com/boating/boat_gas_report/boat-gas-report-fuel-prices-on-lake-of-the-ozarks-for-july-4th-weekend/article_36f247b3-79fe-46db-8e27-e4c08644406f.html",
+  "updated": "2026-07-11T14:55:23.241282+00:00",
+  "articleUrl": "https://www.lakeexpo.com/boating/boat_gas_report/boat-gas-prices-have-dropped-heres-where-to-find-cheap-fuel-at-lake-of-the/article_9cf46f4b-a05f-4958-b42f-defd547221a7.html",
   "locations": [
     {
       "mm": 2,
@@ -22,17 +22,17 @@
       "mm": 7,
       "name": "Millstone Marina & RV Resort",
       "prices": {
-        "87": "4.99",
-        "91": "5.19",
-        "diesel": "4.99"
+        "87": "4.59",
+        "91": "4.95",
+        "diesel": "4.69"
       }
     },
     {
       "mm": 17,
       "name": "MarineMax Port Arrowhead",
       "prices": {
-        "91": "5.39",
-        "diesel": "5.64",
+        "91": "5.04",
+        "diesel": "4.99",
         "87": "3.99"
       }
     },
@@ -48,18 +48,18 @@
       "mm": 21,
       "name": "Redhead Yacht Club Marina",
       "prices": {
-        "87": "4.59",
-        "93": "5.29",
-        "diesel": "4.69"
+        "87": "4.49",
+        "93": "5.19",
+        "diesel": "4.19"
       }
     },
     {
       "mm": 21,
       "name": "Shorty Pants Lounge",
       "prices": {
-        "87": "4.59",
-        "93": "5.29",
-        "diesel": "4.69"
+        "87": "4.49",
+        "93": "5.19",
+        "diesel": "4.59"
       }
     },
     {
@@ -98,8 +98,8 @@
       "mm": 5,
       "name": "Mermaid Cove Marina",
       "prices": {
-        "87": "4.35",
-        "91": "4.49"
+        "87": "4.85",
+        "91": "4.99"
       }
     },
     {
@@ -113,15 +113,15 @@
       "mm": 1,
       "name": "Ozark Yacht Club",
       "prices": {
-        "87": "4.55",
-        "diesel": "5.46"
+        "87": "4.44",
+        "diesel": "5.00"
       }
     },
     {
       "mm": 1,
       "name": "Paradise Marina and Water Sports",
       "prices": {
-        "87": "4.99"
+        "87": "4.69"
       }
     },
     {
@@ -161,7 +161,7 @@
       "mm": 3,
       "name": "Big Thunder Marina at Glencove",
       "prices": {
-        "87": "4.55",
+        "87": "4.44",
         "93": "5.59"
       }
     },
@@ -185,9 +185,9 @@
       "mm": 7,
       "name": "Millstone Marina & RV Resort",
       "prices": {
-        "87": "4.99",
-        "91": "5.19",
-        "diesel": "4.99"
+        "87": "4.59",
+        "91": "4.95",
+        "diesel": "4.69"
       }
     },
     {
@@ -195,7 +195,7 @@
       "name": "Toad Cove Marina",
       "prices": {
         "87": "4.59",
-        "93": "5.60",
+        "93": "5.59",
         "diesel": "4.55"
       }
     },
@@ -218,7 +218,7 @@
       "mm": 13,
       "name": "Pointe Oasis",
       "prices": {
-        "87": "4.24",
+        "87": "4.47",
         "diesel": "5.19"
       }
     },
@@ -226,8 +226,8 @@
       "mm": 17,
       "name": "MarineMax Port Arrowhead",
       "prices": {
-        "91": "5.39",
-        "diesel": "5.64",
+        "91": "5.04",
+        "diesel": "4.99",
         "87": "3.99"
       }
     },
@@ -277,25 +277,33 @@
       "mm": 21,
       "name": "Shorty Pants Lounge",
       "prices": {
-        "87": "4.69",
-        "93": "5.69",
-        "diesel": "4.69"
+        "87": "4.49",
+        "93": "5.19",
+        "diesel": "4.59"
       }
     },
     {
       "mm": 24,
       "name": "Paradise Restaurant & Bar",
       "prices": {
-        "87": "3.69"
+        "87": "3.79"
       }
     },
     {
       "mm": 26,
       "name": "Surdyke's KK- Location",
       "prices": {
+        "87": "4.49",
+        "93": "5.19",
+        "diesel": "4.59"
+      }
+    },
+    {
+      "mm": 31,
+      "name": "Mariners Pier 31",
+      "prices": {
         "87": "4.59",
-        "93": "5.29",
-        "diesel": "4.69"
+        "91": "5.59"
       }
     },
     {
@@ -340,8 +348,8 @@
       "mm": 5,
       "name": "Mermaid Cove Marina",
       "prices": {
-        "87": "4.35",
-        "91": "4.49"
+        "87": "4.85",
+        "91": "4.99"
       }
     },
     {
@@ -356,7 +364,7 @@
       "mm": 4,
       "name": "Lake Burger",
       "prices": {
-        "87": "4.99",
+        "87": "4.79",
         "91": "5.99"
       }
     },
