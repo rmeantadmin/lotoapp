@@ -1,13 +1,13 @@
 {
-  "updated": "2026-07-17T15:14:46.434034+00:00",
-  "articleUrl": "https://www.lakeexpo.com/boating/boat_gas_report/boat-gas-prices-have-dropped-heres-where-to-find-cheap-fuel-at-lake-of-the/article_9cf46f4b-a05f-4958-b42f-defd547221a7.html",
+  "updated": "2026-07-18T14:54:22.725050+00:00",
+  "articleUrl": "https://www.lakeexpo.com/boating/boat_gas_report/boat-gas-report-fuel-prices-on-lake-of-the-ozarks-this-weekend-july-18-19/article_cb2d2177-8628-46b0-9461-75821558c714.html",
   "locations": [
     {
       "mm": 2,
       "name": "Point Randall Resort",
       "prices": {
-        "87": "4.45",
-        "93": "5.45"
+        "87": "4.95",
+        "93": "5.65"
       }
     },
     {
@@ -31,8 +31,8 @@
       "mm": 17,
       "name": "MarineMax Port Arrowhead",
       "prices": {
-        "91": "5.04",
-        "diesel": "4.99",
+        "91": "5.54",
+        "diesel": "5.36",
         "87": "3.99"
       }
     },
@@ -48,17 +48,17 @@
       "mm": 21,
       "name": "Redhead Yacht Club Marina",
       "prices": {
-        "87": "4.49",
-        "93": "5.19",
-        "diesel": "4.19"
+        "87": "4.59",
+        "93": "5.49",
+        "diesel": "4.59"
       }
     },
     {
       "mm": 21,
       "name": "Shorty Pants Lounge",
       "prices": {
-        "87": "4.49",
-        "93": "5.19",
+        "87": "4.59",
+        "93": "5.49",
         "diesel": "4.59"
       }
     },
@@ -66,8 +66,8 @@
       "mm": 35,
       "name": "Pirate's Point",
       "prices": {
-        "87": "4.49",
-        "93": "5.39"
+        "87": "4.69",
+        "93": "5.59"
       }
     },
     {
@@ -81,7 +81,7 @@
       "mm": 60,
       "name": "Patriot's Point",
       "prices": {
-        "91": "5.59"
+        "91": "5.09"
       }
     },
     {
@@ -128,8 +128,8 @@
       "mm": 2,
       "name": "Point Randall Resort",
       "prices": {
-        "87": "4.45",
-        "93": "5.45"
+        "87": "4.95",
+        "93": "5.65"
       }
     },
     {
@@ -143,7 +143,7 @@
       "mm": 3,
       "name": "Village Marina",
       "prices": {
-        "87": "4.42",
+        "87": "4.47",
         "89": "5.11",
         "93": "5.66"
       }
@@ -152,8 +152,8 @@
       "mm": 3,
       "name": "Adventure 3 Marina: North Shore",
       "prices": {
-        "87": "4.38",
-        "93": "5.38",
+        "87": "4.76",
+        "93": "5.48",
         "diesel": "5.16"
       }
     },
@@ -178,7 +178,7 @@
       "name": "Castaways Gas Dock @ LOTO Marina",
       "prices": {
         "87": "4.87",
-        "91": "5.19"
+        "91": "5.09"
       }
     },
     {
@@ -194,8 +194,8 @@
       "mm": 7,
       "name": "Toad Cove Marina",
       "prices": {
-        "87": "4.59",
-        "93": "5.59",
+        "87": "4.91",
+        "93": "5.95",
         "diesel": "4.55"
       }
     },
@@ -203,7 +203,7 @@
       "mm": 8,
       "name": "Rock Harbour Resort",
       "prices": {
-        "87": "4.60"
+        "87": "4.90"
       }
     },
     {
@@ -226,8 +226,8 @@
       "mm": 17,
       "name": "MarineMax Port Arrowhead",
       "prices": {
-        "91": "5.04",
-        "diesel": "4.99",
+        "91": "5.54",
+        "diesel": "5.36",
         "87": "3.99"
       }
     },
@@ -269,16 +269,16 @@
       "name": "Redhead Yacht Club Marina",
       "prices": {
         "87": "4.59",
-        "93": "5.29",
-        "diesel": "4.69"
+        "93": "5.49",
+        "diesel": "4.59"
       }
     },
     {
       "mm": 21,
       "name": "Shorty Pants Lounge",
       "prices": {
-        "87": "4.49",
-        "93": "5.19",
+        "87": "4.59",
+        "93": "5.49",
         "diesel": "4.59"
       }
     },
@@ -286,15 +286,15 @@
       "mm": 24,
       "name": "Paradise Restaurant & Bar",
       "prices": {
-        "87": "3.79"
+        "87": "3.89"
       }
     },
     {
       "mm": 26,
       "name": "Surdyke's KK- Location",
       "prices": {
-        "87": "4.49",
-        "93": "5.19",
+        "87": "4.59",
+        "93": "5.49",
         "diesel": "4.59"
       }
     },
@@ -302,16 +302,16 @@
       "mm": 31,
       "name": "Mariners Pier 31",
       "prices": {
-        "87": "4.59",
-        "91": "5.59"
+        "87": "4.69",
+        "91": "5.69"
       }
     },
     {
       "mm": 35,
       "name": "Pirate's Point",
       "prices": {
-        "87": "4.49",
-        "93": "5.39"
+        "87": "4.69",
+        "93": "5.59"
       }
     },
     {
@@ -333,7 +333,7 @@
       "mm": 60,
       "name": "Patriot's Point",
       "prices": {
-        "91": "5.59"
+        "91": "5.09"
       }
     },
     {
@@ -341,7 +341,7 @@
       "name": "Hiawatha Beach",
       "prices": {
         "87": "4.90",
-        "91": "6.00"
+        "91": "6.25"
       }
     },
     {
@@ -356,7 +356,7 @@
       "mm": 5,
       "name": "Gas Hole",
       "prices": {
-        "87": "4.49",
+        "87": "4.73",
         "93": "5.29"
       }
     },
@@ -379,9 +379,9 @@
       "mm": 1,
       "name": "Formula Boats Of Missouri",
       "prices": {
-        "87": "4.26",
-        "91": "4.54",
-        "diesel": "4.29"
+        "87": "4.36",
+        "91": "4.73",
+        "diesel": "4.56"
       }
     },
     {
